@@ -41,7 +41,8 @@ shinyServer(function(input, output,session) {
   })
   
   output$best_stocks <- renderPlot({    
-    best_stock=which.max(apply(values$thedata[input$start_date:input$end_date,],2,sum))
+    tmp=apply(values$thedata[input$start_date:input$end_date,],2,sum)
+    best_stock=sort(tmp,decreasing=TRUE,index.return=TRUE)$ix[input$stock_order]
     worst_stock=which.min(apply(values$thedata[input$start_date:input$end_date,],2,sum))
     pnl_plot(values$thedata[input$start_date:input$end_date,][,best_stock])
   })
