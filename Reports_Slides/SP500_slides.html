@@ -153,7 +153,6 @@
   </hgroup>
   <article data-timings="">
     <pre><code class="r">mr_strategy = -sign(shift(market, 1)) * market
-names(mr_strategy) &lt;- names(market)
 </code></pre>
 
 <p><img src="assets/fig/unnamed-chunk-9.png" alt="plot of chunk unnamed-chunk-9"> </p>
@@ -243,7 +242,6 @@ names(mr_strategy) &lt;- names(market)
 
 <pre><code class="r">selected_strat = apply(mr_ProjectData, 2, function(r) if (sum(r) &lt; 0) -r else r)
 selected_mr_market = apply(selected_strat, 1, mean)
-names(selected_mr_market) &lt;- names(market)
 </code></pre>
 
   </article>
@@ -434,10 +432,13 @@ stock_betas = (solve(t(demean_IVs) %*% demean_IVs) %*% t(demean_IVs)) %*% (Proje
 stock_alphas = use_mean_alpha * matrix(apply(ProjectData_demean, 2, mean) - 
     t(stock_betas) %*% matrix(apply(Factor_series, 2, mean), ncol = 1), nrow = 1)
 stock_alphas_matrix = rep(1, nrow(ProjectData)) %*% stock_alphas
-stock_betas = t(apply(stock_betas, 1, norm1))  # invest 1 dollar total on the risk portfolio
-# use 0.5 scale to invest 0.5 dollars on the stock and 0.5 on the risk
-# factor portfolio
-Stock_Residuals = 0.5 * (ProjectData - (Factor_series %*% stock_betas + stock_alphas_matrix))
+# make sure each residuals portfolio invests a total of 1 dollar.
+stock_betas_stock = apply(rbind(stock_betas, rep(1, ncol(stock_betas))), 2, 
+    norm1)
+stock_betas = head(stock_betas_stock, -1)  # last one is the stock weight
+stock_weight = rep(1, nrow(ProjectData)) %*% tail(stock_betas_stock, 1)
+Stock_Residuals = stock_weight * ProjectData - (Factor_series %*% stock_betas + 
+    stock_alphas_matrix)
 </code></pre>
 
   </article>
@@ -473,7 +474,7 @@ Stock_Residuals = 0.5 * (ProjectData - (Factor_series %*% stock_betas + stock_al
     <h2>Most Mean Reverting Residuals Portfolio</h2>
   </hgroup>
   <article data-timings="">
-    <p>Stock: HBAN </p>
+    <p>Stock: XRX </p>
 
 <p><img src="assets/fig/unnamed-chunk-32.png" alt="plot of chunk unnamed-chunk-32"> </p>
 
@@ -503,7 +504,6 @@ Stock_Residuals = 0.5 * (ProjectData - (Factor_series %*% stock_betas + stock_al
 
 <pre><code class="r">selected_strat_res = apply(mr_Stock_Residuals, 2, function(r) if (sum(r) &lt; 0) -r else r)
 selected_mr_market_res = apply(selected_strat_res, 1, mean)
-names(selected_mr_market_res) &lt;- names(market)
 </code></pre>
 
   </article>

@@ -93,10 +93,10 @@ pnl_plot(ProjectData[,worst_stock])
 
 ```{r results='asis'}
 mr_strategy = -sign(shift(market,1))*market
-names(mr_strategy)<-names(market)
 ```
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+names(mr_strategy)<-names(market)
 pnl_plot(mr_strategy)
 ```
 
@@ -176,7 +176,6 @@ The code:
 ```{r results='asis'}
 selected_strat=apply(mr_ProjectData,2,function(r) if (sum(r)<0) -r else r)
 selected_mr_market=apply(selected_strat,1,mean)
-names(selected_mr_market)<-names(market)
 ```
 
 ---
@@ -184,6 +183,7 @@ names(selected_mr_market)<-names(market)
 ## Average of Selecting between Mean Reversion and Momentum for each Stock
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+names(selected_mr_market)<-names(market)
 pnl_plot(selected_mr_market)
 ```
 
@@ -333,9 +333,11 @@ ProjectData_demean=apply(ProjectData,2,function(r) r-use_mean_alpha*mean(r))
 stock_betas=(solve(t(demean_IVs)%*%demean_IVs)%*%t(demean_IVs))%*%(ProjectData_demean)
 stock_alphas= use_mean_alpha*matrix(apply(ProjectData_demean,2,mean)-t(stock_betas)%*%matrix(apply(Factor_series,2,mean),ncol=1),nrow=1)
 stock_alphas_matrix=rep(1,nrow(ProjectData))%*%stock_alphas
-stock_betas=t(apply(stock_betas,1,norm1)) # invest 1 dollar total on the risk portfolio
-# use 0.5 scale to invest 0.5 dollars on the stock and 0.5 on the risk factor portfolio
-Stock_Residuals=0.5*(ProjectData-(Factor_series%*%stock_betas + stock_alphas_matrix))
+# make sure each residuals portfolio invests a total of 1 dollar.
+stock_betas_stock=apply(rbind(stock_betas,rep(1,ncol(stock_betas))),2,norm1)
+stock_betas=head(stock_betas_stock,-1) # last one is the stock weight
+stock_weight=rep(1,nrow(ProjectData))%*%tail(stock_betas_stock,1)
+Stock_Residuals=stock_weight*ProjectData-(Factor_series%*%stock_betas + stock_alphas_matrix)
 ```
 
 
@@ -391,7 +393,6 @@ The Code:
 ```{r results='asis'}
 selected_strat_res=apply(mr_Stock_Residuals,2,function(r) if (sum(r)<0) -r else r)
 selected_mr_market_res=apply(selected_strat_res,1,mean)
-names(selected_mr_market_res)<-names(market)
 ```
 
 ---
@@ -399,6 +400,7 @@ names(selected_mr_market_res)<-names(market)
 ## Average of Selection with Hindsight
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+names(selected_mr_market_res)<-names(market)
 pnl_plot(selected_mr_market_res)
 ```
 
