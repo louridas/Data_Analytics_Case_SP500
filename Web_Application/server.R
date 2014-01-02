@@ -1,175 +1,101 @@
+options(shiny.maxRequestSize=30*1024^2)
+
 shinyServer(function(input, output,session) {
   
-  rotationInput <- reactive({
-    switch(input$rotation,
-           "none" = none,
-           "varimax" = varimax,
-           "promax" = promax,
-		   "oblimin" = oblimin,
-		   "simplimax" = simplimax,
-		   "cluster" = cluster)
+  start_date<-reactive({
+    input$start_date
   })
   
-  factornum<-reactive({
-  input$factors
+  end_date<-reactive({
+    input$end_date
   })
-	values <- reactiveValues()
-  output$contents <- renderTable({
-    
-    # input$file1 will be NULL initially. After the user selects and uploads a 
-    # file, it will be a data frame with 'name', 'size', 'type', and 'datapath' 
-    # columns. The 'datapath' column will contain the local filenames where the 
-    # data can be found.
-
+  
+  numb_components_used<-reactive({
+    input$numb_components_used
+  })
+  
+  values <- reactiveValues()
+  
+  output$histogram<-renderPlot({
     inFile <- input$file1
-
     if (is.null(inFile))
       return(NULL)
     
-   values$thedata<-read.csv(inFile$datapath, header=input$header, sep=input$sep, quote=input$quote)
-	
-	values$thedata[1:input$rows,]
-	
-  })
-  
-  output$cols<-renderPrint({
-    ncol(values$thedata)
-  })
-  
- final<-reactiveValues()
-  
-  output$finaldata<-renderTable({
+    load(inFile$datapath)
+    values$thedata<-ProjectData
+    ProjectData_app<-values$thedata[input$start_date:input$end_date,]
     
-    cc<-input$checkdata
-    cc<-paste("c(",cc,")",sep="")
-    cc<-eval(parse(text=cc))
-    fdata<-values$thedata[1:input$rows,cc]
-    final$thedata<-as.data.frame(values$thedata[,cc])
-    return(fdata)
-   
-  })
-  output$colindex<-renderTable({
-    coll<-t(c(1:ncol(values$thedata)))
-    name<-colnames(values$thedata)
-    return(rbind(name,coll))
-  })
-  
-  
-  output$intcors<-renderPrint({
-  corthres = 0.4
-final$thedata<-as.data.frame(final$thedata)
-the_correlation = cor(final$thedata)
-for (i in 1:(ncol(final$thedata) - 1)) {
-    thecori = cor(final$thedata[, i], final$thedata)
-    useonly = setdiff(which(abs(thecori) > corthres), i)
-    labels_used = colnames(final$thedata)[useonly]
-    thecori = matrix(thecori[useonly], nrow = 1)
-    colnames(thecori) <- labels_used
-    cat("\nAttribute", colnames(final$thedata)[i], "has these correlations above", 
-        corthres, ": ")
-    if (length(thecori) == 0) 
-        cat("No Large Correlations") else sapply(1:ncol(thecori), function(j) cat(colnames(thecori)[j], ":", 
-        thecori[j], ","))
-}
-  })
-  
-  
-  output$summary<-renderTable({
-  rotationInput()
-  id <- sapply(final$thedata, is.factor)
-  # Convert to numeric
-  final$thedata[id] <- lapply(final$thedata[id], as.numeric)
-  
-  summary(final$thedata)
-  })
-  
-  output$correlation<-renderTable({
-    require(Hmisc)
-    x <- as.matrix(final$thedata)
-    R <- rcorr(x)$r
-    p <- rcorr(x)$P
-    mystars <- ifelse(p < 0.01, "**", ifelse(p < 0.05, "*", "  "))
-    R <- format(round(cbind(rep(-1.111, ncol(x)), R), 3))[,-1]
-    Rnew <- matrix(paste(R, mystars, sep=""), ncol=ncol(x))
-    diag(Rnew) <- paste(diag(R), "", sep = "")
-    rownames(Rnew) <- colnames(x)
-    colnames(Rnew) <- paste(colnames(x), "", sep = "")
-    Rnew <- as.data.frame(Rnew)
-    return(Rnew)
+    hist(ProjectData_app,breaks=200)
     
   })
-  output$eigenvalues<-renderTable({
-  rotationInput()
-  if (require(FactoMineR)==FALSE){install.packages("FactoMineR")}
-library(FactoMineR)
-  thedata<-final$thedata
-  result <- PCA(thedata,graph=FALSE)
-  eigenvalues<-result$eig
-print(eigenvalues)
+  
+  output$stock_returns <- renderPlot({    
+    stockx=ProjectData_app[,input$ind_stock]
+    names(stockx)<-rownames(values$thedata)
+    pnl_plot(stockx)    
   })
   
-  output$cor_old_new<-renderTable({
-  factornum()
-  if (require(FactoMineR)==FALSE){install.packages("FactoMineR")}
-library(FactoMineR)
-  thedata<-final$thedata
-  result <- PCA(thedata,ncp=input$factors,graph=FALSE)
-  corfactor <- result$var$cor
-corfactornew<-as.data.frame(corfactor)
-print(corfactornew)
+  output$market <- renderPlot({    
+    market=apply(ProjectData_app,1,mean)
+    names(market)<-rownames(ProjectData_app)
+    pnl_plot(market)    
   })
   
-  output$scores<-renderTable({
-  rotationInput()
-  factornum()
-   if (require(FactoMineR)==FALSE){install.packages("FactoMineR")}
-library(FactoMineR)
-  thedata<-final$thedata
-  result <- PCA(thedata,graph=FALSE)
- if (require(psych)==FALSE){install.packages("psych")}
-library(psych)
-fa<-principal(thedata, nfactors=input$factors, rotate=paste(input$rotation))
- factormatrix <- fa$scores
-facmat<-as.data.frame(factormatrix[1:input$rows1,])
-print(facmat)
-  
+  output$bw_stocks <- renderPlot({    
+    best_stock=which.max(apply(ProjectData_app,2,sum))
+    worst_stock=which.min(apply(ProjectData_app,2,sum))
+    pnl_plot(ProjectData_app[,best_stock])
+    pnl_plot(ProjectData_app[,worst_stock])
   })
   
-  
-  output$plot<-renderPlot({
-  library(FactoMineR)
-  if (require(ggplot2)==FALSE){install.packages("ggplot2")}
-library(ggplot2)
-  result <- PCA(final$thedata, graph=FALSE) # graphs generated automatically
-
-# %interpretation of components
-eigenvalues<-result$eig
-
-# eigen values plot
-x<-ggplot() +
-  geom_line(aes(x = 1:length(eigenvalue),y = eigenvalue),data=eigenvalues,fun.data = mean_sdl,mult = 1,stat = 'summary') +
-  xlab(label = 'Number of Factors') +
-  ylab(label = 'Eigenvalues') +
-  ggtitle(label = 'Scree Plot') +
-  theme_classic() +
-  theme_grey() +
-  theme_bw() +
-  theme_grey() +
-  coord_cartesian(xlim = c(0 ,29),ylim = c(0,10)) +
-  stat_abline(data=eigenvalues,intercept = 1.0,slope = 0.0,colour = '#00cc33',size = 1.0) +
-  geom_point(aes(x = 1:length(eigenvalue),y = eigenvalue),data=eigenvalues,colour = '#3333ff')
-print(x)
-  
+  output$mr_strategy <- renderPlot({        
+    mr_strategy = -sign(shift(market,1))*market
+    names(x)<-rownames(ProjectData_app)
+    pnl_plot(mr_strategy)
   })
+  
+  output$eigen_plot <- renderPlot({    
+    SP500PCA<-PCA(ProjectData_app, graph=FALSE)
+    Variance_Explained_Table<-SP500PCA$eig
+    SP500_Eigenvalues=Variance_Explained_Table[,1]
+    plot(SP500_Eigenvalues,main="The S&P 500 Daily Returns Eigenvalues", ylab="Value")
+  })
+  
+  output$res_market <- renderPlot({    
+    TheFactors=SP500PCA_simple$vectors[,1:numb_components_used]
+    TheFactors=apply(TheFactors,2,norm1)
+    TheFactors=apply(TheFactors,2,function(r)if (sum(ProjectData%*%r)<0) -r else r)
+    Factor_series=ProjectData%*%TheFactors
+    demean_IVs=apply(Factor_series,2,function(r)r-use_mean_alpha*mean(r))
+    ProjectData_demean=apply(ProjectData,2,function(r) r-use_mean_alpha*mean(r))
+    stock_betas=(solve(t(demean_IVs)%*%demean_IVs)%*%t(demean_IVs))%*%(ProjectData_demean)
+    stock_alphas= use_mean_alpha*matrix(apply(ProjectData_demean,2,mean)-t(stock_betas)%*%matrix(apply(Factor_series,2,mean),ncol=1),nrow=1)
+    stock_alphas_matrix=rep(1,nrow(ProjectData))%*%stock_alphas
+    # make sure each residuals portfolio invests a total of 1 dollar.
+    stock_betas_stock=apply(rbind(stock_betas,rep(1,ncol(stock_betas))),2,norm1)
+    stock_betas=head(stock_betas_stock,-1) # last one is the stock weight
+    stock_weight=rep(1,nrow(ProjectData))%*%tail(stock_betas_stock,1)
+    Stock_Residuals=stock_weight*ProjectData-(Factor_series%*%stock_betas + stock_alphas_matrix)
+    res_market=apply(Stock_Residuals,1,mean)
+    names(res_market)<-names(market)
+    pnl_plot(res_market)
+    
+  })
+  
+  output$res_hindsight <- renderPlot({    
+    selected_strat_res=apply(mr_Stock_Residuals,2,function(r) if (sum(r)<0) -r else r)
+    selected_mr_market_res=apply(selected_strat_res,1,mean)
+    names(selected_mr_market_res)<-names(market)
+    pnl_plot(selected_mr_market_res)
+  })
+  
   
   output$report = downloadHandler(
-    filename = 'factor.html',
-    
+    filename = 'WebApp_Report.html',
     content = function(file) {
       out = knit2html('WebApp_Report.Rmd')
       file.rename(out, file) # move pdf to file for downloading
-    },
-    
+    },    
     contentType = 'application/pdf'
   )
   

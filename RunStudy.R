@@ -22,8 +22,9 @@ use_mean_alpha=0
 # Please ENTER the stocks to use (default is 1:ncol(ProjectData), namely all of them)
 stocks_used=1:ncol(ProjectData)
 
-# Please ENTER the time period to use (default is 1:nrow(ProjectData), namely all the days)
-days_used=1:nrow(ProjectData)
+# Please ENTER the time period to use (default is 1 to nrow(ProjectData), namely all the days)
+start_date=1
+end_date=nrow(ProjectData)
 
 # Would you like to also start a web application once the report and slides are generated?
 # 1: start application, 0: do not start it. 
@@ -34,6 +35,7 @@ strat_webapp=0
 ######################################################################
 # Run it now and generate the report, slides, and if needed start the web application
 
+days_used=start_date:end_date
 ProjectData=ProjectData[days_used,stocks_used]
 source("R_code/library.R")
 

@@ -8,24 +8,24 @@ S&P500 Daily stock Returns
 
 **D. Spinellis, AUEB**
 
-```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-
-ProjectData <- final$thedata
-
-#numb_components_used = final$components
-numb_components_used = 3
-
-# Please ENTER 0 or 1 to de-mean or not the data in the regression estimation of the report (Default is 0)
-#use_mean_alpha=final$demean
-use_mean_alpha=0
-
-```
 Project Description
 ---------------------------------------------------------
 
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+# use the default parameter
+use_mean_alpha=0
+```
+
 The project is based on the paper  <a href="http://www.insead.edu/facultyresearch/research/doc.cfm?did=52770">Regularized Robust Portfolio Estimation</a> by T. Evgeniou, M. Pontil, D. Spinellis, R. Swiderski, and N. Nassuphis.
 
-It describes a simple analysis of daily stock returns of S&P 500 stocks as well as some known trading strategies.
+It describes a simple analysis of daily stock returns of S&P 500 stocks.
+
+**Disclaimer:**
+
+```
+This project is meant to be an example of how to organize a data analytics case study/project. It is not meant to provide insights for stock data or stock trading. It also does not build on any finance literature (e.g. regarding risk factors such as size, growth, or momentum). 
+```
+
 
 The Data
 ---------------------------------------------------------
@@ -133,6 +133,15 @@ pnl_plot(mr_ProjectData[,worst_stock_mr])
 
 These company tickers are `r colnames(ProjectData)[best_stock_mr]` and `r colnames(ProjectData)[worst_stock_mr]`, respectively. If we were to select them using their Sharpe, the best and worst stocks would have been `r colnames(ProjectData)[which.max(apply(mr_ProjectData,2,sharpe))]` and `r colnames(ProjectData)[which.min(apply(mr_ProjectData,2,sharpe))]`, respectively.
 
+The "market" of the mean-reverting strategies is:
+
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+mr_market=apply(mr_ProjectData,1,mean)
+names(mr_market)<-names(market)
+pnl_plot(mr_market)
+```
+
+
 Notice that one could also use the following **momentum** strategy instead:
 
 ```{r results='asis'}
@@ -141,6 +150,27 @@ names(mom_strategy)<-names(market)
 ```
 
 which would lead to the exact opposite returns when used for the market. Clearly `r colnames(ProjectData)[worst_stock_mr]` has now the best returns based on this momentum strategy. 
+
+If we could separate the stocks into momentum and mean reverting (e.g. for each stock select the one of the two that leads to better returns or Sharpe), the average of those series would be:
+
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+selected_strat=apply(mr_ProjectData,2,function(r) if (sum(r)<0) -r else r)
+selected_mr_market=apply(selected_strat,1,mean)
+names(selected_mr_market)<-names(market)
+pnl_plot(selected_mr_market)
+```
+
+Of course one could do this selection for shorter time windows to achieve even better returns. For example, these are the returns of the last 750 days if we do the selection using only data of these 750 days:
+
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+recent_selected_strat=apply(tail(mr_ProjectData,750),2,function(r) if (sum(r)<0) -r else r)
+recent_selected_mr_market=apply(recent_selected_strat,1,mean)
+names(recent_selected_mr_market)<-names(tail(market,750))
+pnl_plot(recent_selected_mr_market)
+```
+
+
+The returns and Sharpe look great, but making this selection between momentum and mean-reversion for each stock without hindsight is of course not practical.
 
 
 Risk Factors
@@ -229,18 +259,16 @@ TheFactors=SP500PCA_simple$vectors[,1:numb_components_used]
 TheFactors=apply(TheFactors,2,norm1)
 TheFactors=apply(TheFactors,2,function(r)if (sum(ProjectData%*%r)<0) -r else r)
 Factor_series=ProjectData%*%TheFactors
-
 demean_IVs=apply(Factor_series,2,function(r)r-use_mean_alpha*mean(r))
 ProjectData_demean=apply(ProjectData,2,function(r) r-use_mean_alpha*mean(r))
-
 stock_betas=(solve(t(demean_IVs)%*%demean_IVs)%*%t(demean_IVs))%*%(ProjectData_demean)
 stock_alphas= use_mean_alpha*matrix(apply(ProjectData_demean,2,mean)-t(stock_betas)%*%matrix(apply(Factor_series,2,mean),ncol=1),nrow=1)
 stock_alphas_matrix=rep(1,nrow(ProjectData))%*%stock_alphas
-
-stock_betas=t(apply(stock_betas,1,norm1)) # invest 1 dollar total on the risk portfolio
-# use 0.5 scale to invest 0.5 dollars on the stock and 0.5 on the risk factor portfolio
-Stock_Residuals=0.5*(ProjectData-(Factor_series%*%stock_betas + stock_alphas_matrix))
-
+# make sure each residuals portfolio invests a total of 1 dollar.
+stock_betas_stock=apply(rbind(stock_betas,rep(1,ncol(stock_betas))),2,norm1)
+stock_betas=head(stock_betas_stock,-1) # last one is the stock weight
+stock_weight=rep(1,nrow(ProjectData))%*%tail(stock_betas_stock,1)
+Stock_Residuals=stock_weight*ProjectData-(Factor_series%*%stock_betas + stock_alphas_matrix)
 ```
 
 As before, if we now use the residuals and we select With hindsight the best individual stock (trading its residuals by buying the stock and shorting the risk factor using the estimated regression coefficients, scaled to trade 1 dollar) in terms of returns, it performs as follows:
@@ -279,6 +307,24 @@ pnl_plot(mom_Stock_Residuals[,best_stock_mom_res])
 
 These company tickers are `r colnames(ProjectData)[best_stock_mr_res]` and `r colnames(ProjectData)[best_stock_mom_res]`, respectively. 
 
+One can also explore the portfolio of individual residual strategies when selecting for each one of them whether to mean revert or not, as we did for the individual stocks above. With hindsight this leads to the following returns:
+
+
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+selected_strat_res=apply(mr_Stock_Residuals,2,function(r) if (sum(r)<0) -r else r)
+selected_mr_market_res=apply(selected_strat_res,1,mean)
+names(selected_mr_market_res)<-names(market)
+pnl_plot(selected_mr_market_res)
+```
+
+But again, choosing between momentum and mean reversion for each redisual portfolio without hindsight is not practical. 
+
+```
+The results "with hindsight" may give the impression that, even though one cannot reach those results in practice, there is a lot of potential. Afterall one only has to select 423 binary variables for the entire 10 years of data: whether to follow a mean reversion or a momentum strategy for each individual stock or residual portfolio for the entire 10 years period. At first glance, making only a "423 bits" decision (you can think of it as if you "only see 423 bits of information for the entire 10 years for all `r ncol(ProjectData)` stocks, namely for `r length(ProjectData)` real numbers!") does not seem much at all - especially if this data is "close to random" (note: known risk factors, such as the momentum one, indicate this is not the case - depending on how one models the series). But maybe this is indeed as many bits of information as one could possibly need to "know all about the S&P 500 stocks for 10 years"...
+```
+
+**As always, one has to be very aware of the signal to noise ratio in the data one explores. This is what "fooled by randomness" can really mean.**
+
 
 
 Some Lessons Learned
@@ -293,3 +339,5 @@ Some Lessons Learned
 - Example of statistical estimation of, what one could call, "risk factors".
 
 - Example mean reverting or momentum daily trading strategies. 
+
+- It only take a few bits of information with hindsight to get fooled by randomness with this data. 

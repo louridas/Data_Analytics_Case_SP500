@@ -1,30 +1,22 @@
+
 shinyUI(pageWithSidebar(
-  headerPanel("S&P 500 Daily Prices Web app"),
+  headerPanel("S&P 500 Daily Returns App"),
   sidebarPanel(
-  HTML("<hr>"),
-  HTML("<center><h2>Upload Area</h2></center><br>"),
-    fileInput('file1', 'Choose CSV File',
-              accept=c('text/csv', 'text/comma-separated-values,text/plain', '.csv')),
+    HTML("<hr>"),
+    HTML("<center><h3>Data Upload </h3></center><br><br><br>"),
+    fileInput('file1', 'Choose File (R data)'),
     tags$hr(),
-    checkboxInput('header', 'Header', TRUE),
-    radioButtons('sep', 'Separator',
-                 c(Comma=',',
-                   Semicolon=';',
-                   Tab='\t'),
-                 'Comma'),
-    radioButtons('quote', 'Quote',
-                 c(None='',
-                   'Double Quote'='"',
-                   'Single Quote'="'"),
-                 'Double Quote'),
-				 HTML("<hr>"),
-			numericInput("factors", "Select the number of factors:", 1),
-				selectInput("rotation", "Select rotation method:", 
-                choices = c("none", "varimax", "quatimax","promax","oblimin","simplimax","cluster")),
-				HTML("<hr>"),
-				 HTML("<center><h2>Download your dynamic report</h2></center><br>"),
-  downloadButton('report'),
-  HTML("<hr>")
+    HTML("<hr>"),
+    numericInput("start_date", "Select Starting date (e.g. 1):", 1),
+    numericInput("end_date", "Select End date (e.g. 2586):", 2586),
+    numericInput("numb_components_used", "Select the number of PCA risk factors:", 3),
+
+    tags$hr(),
+    HTML("<hr>"),
+
+    HTML("<center><h3>Download your report</h3></center><br>"),
+    downloadButton('report'),
+    HTML("<hr>")
   ),
   
   mainPanel(
@@ -33,21 +25,22 @@ shinyUI(pageWithSidebar(
                ".shiny-output-error:before { visibility: hidden; }"
     ),
     
-  tabsetPanel(
-  
-		tabPanel("Data_Imports",HTML("<h4>Loaded data</h4><hr>"),numericInput("rows", "Select the number of rows to show:", 10),HTML("<div>Column index table</div><hr>"),tableOutput('colindex'),HTML("<div>Data Contents</div><hr>"),tableOutput('contents'),
-		         conditionalPanel(
-		           condition = "output.contents",HTML("<h4>Select attributes</h4><hr>"),textInput("checkdata","Check your columns consecutive e.g 1:5 or separate e.g 8 all combined with comma","")
-		         ,HTML("<h4>Selected data</h4><hr>"),tableOutput('finaldata'))
-		          ),
-            
-		tabPanel("Summary", tableOutput('summary')),
-		tabPanel("Correlations",HTML("<div>** = correlation is significant at 1% level; * = correlation is significant at 5% level</div>"),tableOutput('correlation')),
-      tabPanel("Scree Plot", plotOutput("plot")), 
-	  tabPanel("Eigen values Table", tableOutput('eigenvalues')),
-	  tabPanel("Correlation of old variables with new factors", tableOutput('cor_old_new')),
-	  tabPanel("Scores", numericInput("rows1", "Select the number of rows to show:", 10),tableOutput('scores')), 
-      tabPanel("Cor of Atr used in Reduction", verbatimTextOutput("intcors"))
+    tabsetPanel(
+      
+      tabPanel("Single Stocks",
+               textInput("ind_stock", "Select the stock to show (e.g. AAPL):", ),
+               tags$hr(),
+               HTML("<div>Cumulative Returns of Selected Stock</div>"),
+               plotOutput('stock_returns')
+      ),
+      
+      tabPanel("Histogram", plotOutput('histogram')),
+      tabPanel("The Market", plotOutput('market')),
+      tabPanel("Market Mean Reversion", plotOutput('mr_market')),
+      tabPanel("Best/Worst Stocks", plotOutput('bw_stocks')),
+      tabPanel("Eigenvalues Plot", plotOutput("eigen_plot")),
+      tabPanel("Residuals Market", plotOutput('res_market')),
+      tabPanel("Residuals Hindsight Portfolio", plotOutput('res_hindsight'))
     )
     
   )
