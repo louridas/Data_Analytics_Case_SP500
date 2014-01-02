@@ -3,7 +3,7 @@ shinyUI(pageWithSidebar(
   headerPanel("S&P 500 Daily Returns App"),
   sidebarPanel(
     HTML("<hr>"),
-    HTML("<center><h3>Data Upload </h3></center><br><br><br>"),
+    HTML("<center><h3>Data Upload </h3></center><br>"),
     fileInput('file1', 'Choose File (R data)'),
     tags$hr(),
     HTML("<hr>"),
@@ -37,8 +37,14 @@ shinyUI(pageWithSidebar(
       tabPanel("Histogram", plotOutput('histogram')),
       tabPanel("The Market", plotOutput('market')),
       tabPanel("Market Mean Reversion", plotOutput('mr_market')),
-      tabPanel("Best/Worst Stocks", plotOutput('bw_stocks')),
+      tabPanel("Best Stock", plotOutput('best_stocks')),
+      tabPanel("Worst Stock", plotOutput('best_stocks')),
       tabPanel("Eigenvalues Plot", plotOutput("eigen_plot")),
+      tabPanel("Eigenvector Returns",                
+               numericInput("vector_plotted", "Select the eigenvector to plot (e.g.1):", 1),
+               tags$hr(),
+               HTML("<div>Cumulative Returns of Selected Eigenvector</div>"),
+               plotOutput("eigen_returns")),
       tabPanel("Residuals Market", plotOutput('res_market')),
       tabPanel("Residuals Hindsight Portfolio", plotOutput('res_hindsight'))
     )
