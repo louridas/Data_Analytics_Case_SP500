@@ -46,8 +46,8 @@ days_used=start_date:end_date
 ProjectData=ProjectData[days_used,stocks_used]
 source("R_code/library.R")
 
-#knit2html("Reports_Slides/SP500_report.Rmd")
-#slidify("Reports_Slides/SP500_slides.Rmd")
+knit2html("Reports_Slides/SP500_report.Rmd")
+slidify("Reports_Slides/SP500_slides.Rmd")
 
 if (strat_webapp)
   runApp("Web_Application")
