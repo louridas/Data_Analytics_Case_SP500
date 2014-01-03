@@ -11,10 +11,6 @@ S&P500 Daily stock Returns
 Project Description
 ---------------------------------------------------------
 
-```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-# use the default parameter
-use_mean_alpha=0
-```
 
 The project is based on the paper  <a href="http://www.insead.edu/facultyresearch/research/doc.cfm?did=52770">Regularized Robust Portfolio Estimation</a> by T. Evgeniou, M. Pontil, D. Spinellis, R. Swiderski, and N. Nassuphis.
 
