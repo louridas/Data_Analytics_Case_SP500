@@ -28,8 +28,9 @@ pnl_stats<-function(x){
 pnl_plot<-function(x,...){
   ylab<-deparse(substitute(x))
   if(class(x)=="matrix")if(ncol(x)>1)x<-x[,1,drop=FALSE]
-  if(class(x)!="matrix:")x<-matrix(x,ncol=1,dimnames=list(names(x),NULL))
-  main<-paste(names(pnl_stats(x)),pnl_stats(x),sep=":",collapse=" ")
+  if(class(x)!="matrix") x<-matrix(x,ncol=1,dimnames=list(names(x),NULL))
+  assetname=ifelse (is.null(colnames(x)),"",paste(colnames(x),": ",sep=""))
+  main<-paste(assetname,paste(names(pnl_stats(x)),pnl_stats(x),sep=":",collapse=" "),sep=" ")
   plot(cumsum(x),type="l",ylab="Percent Return",xlab="Date",main=main,axes=FALSE,...)
   if(!is.null(rownames(x))){
     axis(1,at=seq(1,nrow(x),length.out=5),labels=rownames(x)[seq(1,nrow(x),length.out=5)])

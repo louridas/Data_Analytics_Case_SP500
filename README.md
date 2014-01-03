@@ -43,3 +43,7 @@ and source this file again. A new report, slides, and (if needed) web applicatio
 
 
 [3] To modify the text of the report or the slides, please edit the .Rmd files in the Reports_Slides directory. To modify the Web Application please edit the ui.R and server.R files in the Web_Application directory. After any modifications please repeat step 2 to generate the new report, slides, and launch the new Web application. 
+
+[4] You can modify the parameters of the project and generate new customized reports through the web application. 
+
+**Note:** Please press the stop button in the Console window to stop running the web application when needed.

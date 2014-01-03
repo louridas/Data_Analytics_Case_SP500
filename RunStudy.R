@@ -8,9 +8,9 @@ rm(list = ls()) # clean up the workspace
 # THESE ARE THE PROJECT PARAMETERS NEEDED TO GENERATE THE REPORT
 
 # Please ENTER the name of the file with the data used. The file should contain a matrix with one row per observation (e.g. person) and one column per attribute. THE NAME OF THIS MATRIX NEEDS TO BE ProjectData (otherwise you will need to replace the name of the ProjectData variable below with whatever your variable name is, which you can see in your Workspace window after you load your file)
-datafile_name="SP500data"
+datafile_name="ProjectData" # this is the default name of the data for a project
 ###########
-# DATA FORMAT:File datafile_name must have a matrix called ProjectData of 
+# DEFAULT PROJECT DATA FORMAT: File datafile_name must have a matrix called ProjectData of 
 # D rows and S columns, where D is the number of days and S the number of stocks
 ###########
 
@@ -34,8 +34,9 @@ use_mean_alpha=0
 
 # Would you like to also start a web application once the report and slides are generated?
 # 1: start application, 0: do not start it. 
-# Note: starting the web application will open a new browser with the application running
-strat_webapp=0
+# Note: starting the web application will open a new browser 
+# with the application running
+strat_webapp=1
 
 
 ######################################################################
@@ -45,8 +46,8 @@ days_used=start_date:end_date
 ProjectData=ProjectData[days_used,stocks_used]
 source("R_code/library.R")
 
-knit2html("Reports_Slides/SP500_report.Rmd")
-slidify("Reports_Slides/SP500_slides.Rmd")
+#knit2html("Reports_Slides/SP500_report.Rmd")
+#slidify("Reports_Slides/SP500_slides.Rmd")
 
 if (strat_webapp)
   runApp("Web_Application")
