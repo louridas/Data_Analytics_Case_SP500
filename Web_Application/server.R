@@ -227,7 +227,7 @@ shinyServer(function(input, output,session) {
       unlink("assets", recursive=TRUE)    
       unlink("figures", recursive=TRUE)      
       
-      file.copy("../doc/SP500_slides.Rmd",filename.Rmd,overwrite=T)
+      file.copy("../doc/SP500_Slides.Rmd",filename.Rmd,overwrite=T)
       slidify(filename.Rmd)
       
       unlink(".cache", recursive=TRUE)     
