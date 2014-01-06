@@ -22,25 +22,25 @@ A simple analysis of daily stock returns of S&P 500 stocks.
 ---
 ## The Data
 
-`r round(nrow(ProjectData)/250)` years (from `r head(rownames(ProjectData),1)` to `r tail(rownames(ProjectData),1)`) of daily returns of `r ncol(ProjectData)` companies which were in the S&P500 index in February 2013. Every row is a day and every column is an individual stock. The data matrix has `r nrow(ProjectData)` rows and `r ncol(ProjectData)` columns. 
+`r round(nrow(ProjectData) / 250)` years (from `r head(rownames(ProjectData),1)` to `r tail(rownames(ProjectData),1)`) of daily returns of `r ncol(ProjectData)` companies which were in the S&P500 index in February 2013. Every row is a day and every column is an individual stock. The data matrix has `r nrow(ProjectData)` rows and `r ncol(ProjectData)` columns. 
 
 ---
 
 ## Histogram of Daily Returns
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-hist(ProjectData,main="Histogram of All Daily Stock Returns",xlab="Daily Stock Returns (%)", breaks=200)
+hist(ProjectData, main = "Histogram of All Daily Stock Returns", xlab = "Daily Stock Returns (%)", breaks = 200)
 ```
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-market=apply(ProjectData,1,mean)
+market = apply(ProjectData, 1, mean)
 ```
 
 ---
 
 ## How Cumulative Returns are Calculated
 
-All returns reported correspond to the total sum of returns if we invest every day 1 dollar. For example, in this case the market returns is `r sum(market)`, which means that we would have made a total of `r sum(market)`% of 1 dollar, namely `r sum(market)*1/100` dollars. If the return was, say, -200%, we would have lost 2 dollars.  
+All returns reported correspond to the total sum of returns if we invest every day 1 dollar. For example, in this case the market returns is `r sum(market)`, which means that we would have made a total of `r sum(market)`% of 1 dollar, namely `r sum(market) * 1 / 100` dollars. If the return was, say, -200%, we would have lost 2 dollars.  
 
 ---
 
@@ -54,24 +54,28 @@ pnl_plot(market)
 
 ## Summary Statistics of Equal Weighted Market
 
+<div class="row">
+<div class="col-md-6">
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-market_summary=t(summary(as.matrix(market,ncol=1)))
-rownames(market_summary)<-NULL
-print(xtable(market_summary ,caption="Summary Statistics Daily Market Returns", digits=3), type="html",html.table.attributes = "class='table table-striped table-hover table-bordered'",caption.placement="top",comment = FALSE,include.rownames = FALSE)
+market_summary = t(summary(as.matrix(market, ncol = 1)))
+rownames(market_summary) <- NULL
+print(xtable(market_summary, caption = "Summary Statistics Daily Market Returns", digits=3), type = "html", html.table.attributes = "class='table table-striped table-hover table-bordered'", caption.placement = "top", comment = FALSE, include.rownames = FALSE)
 ```
+</div>
+</div>
 
 ---
 
 ## Best Stock (in terms of returns) with Hindsight
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-best_stock=which.max(apply(ProjectData,2,sum))
+best_stock = which.max(apply(ProjectData, 2, sum))
 ```
 
 Stock: `r colnames(ProjectData)[best_stock]` 
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-pnl_plot(ProjectData[,best_stock])
+pnl_plot(ProjectData[, best_stock])
 ```
 
 
@@ -80,13 +84,13 @@ pnl_plot(ProjectData[,best_stock])
 ## Worst Stock with Hindsight
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-worst_stock=which.min(apply(ProjectData,2,sum))
+worst_stock = which.min(apply(ProjectData, 2, sum))
 ```
 
 Stock: `r colnames(ProjectData)[worst_stock]` 
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-pnl_plot(ProjectData[,worst_stock])
+pnl_plot(ProjectData[, worst_stock])
 ```
 
 
@@ -95,11 +99,11 @@ pnl_plot(ProjectData[,worst_stock])
 ## Mean Reversion of the Market
 
 ```{r results='asis'}
-mr_strategy = -sign(shift(market,1))*market
+mr_strategy = -sign(shift(market, 1)) * market
 ```
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-names(mr_strategy)<-names(market)
+names(mr_strategy) <- names(market)
 pnl_plot(mr_strategy)
 ```
 
@@ -108,8 +112,8 @@ pnl_plot(mr_strategy)
 ## Mean Reversion of the Market: only when the market fell the day before
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-mr_down=mr_strategy*(shift(market,1)<0)
-names(mr_down)<-names(market)
+mr_down = mr_strategy * ( shift(market, 1) < 0 )
+names(mr_down) <- names(market)
 pnl_plot(mr_down)
 ```
 
@@ -118,8 +122,8 @@ pnl_plot(mr_down)
 ## Mean Reversion of the Market: only when the market rose the day before
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-mr_up=mr_strategy*(shift(market,1)>=0)
-names(mr_up)<-names(market)
+mr_up = mr_strategy * ( shift(market, 1) >= 0 )
+names(mr_up) <- names(market)
 pnl_plot(mr_up)
 ```
 
@@ -128,14 +132,14 @@ pnl_plot(mr_up)
 ## Most Mean Reverting Stock with Hindsight
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-mr_ProjectData=-sign(shift(ProjectData,1))*ProjectData
-best_stock_mr=which.max(apply(mr_ProjectData,2,sum))
+mr_ProjectData = -sign(shift(ProjectData, 1)) * ProjectData
+best_stock_mr = which.max(apply(mr_ProjectData, 2, sum))
 ```
 
 Stock: `r colnames(ProjectData)[best_stock_mr]` 
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-pnl_plot(mr_ProjectData[,best_stock_mr])
+pnl_plot(mr_ProjectData[, best_stock_mr])
 ```
 
 ---
@@ -143,22 +147,22 @@ pnl_plot(mr_ProjectData[,best_stock_mr])
 ## Most Momentum Stock with Hindsight
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-worst_stock_mr=which.min(apply(mr_ProjectData,2,sum))
+worst_stock_mr = which.min(apply(mr_ProjectData, 2, sum))
 ```
 
 Stock: `r colnames(ProjectData)[worst_stock_mr]` 
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-pnl_plot(-mr_ProjectData[,worst_stock_mr])
+pnl_plot(mr_ProjectData[, worst_stock_mr])
 ```
 
 ---
 
-## Average of Mean Reversion of All Stocks
+## Average ("Market") of Mean Reversion of All Stocks
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-mr_market=apply(mr_ProjectData,1,mean)
-names(mr_market)<-names(market)
+mr_market = apply(mr_ProjectData, 1, mean)
+names(mr_market) <- names(market)
 pnl_plot(mr_market)
 ```
 
@@ -168,7 +172,7 @@ pnl_plot(mr_market)
 
 What if we select (with hindsight) whether to follow a mean reverting or momentum strategy for each individual stock - e.g. choosing the one of the two that leads to the best cumulative returns over the entire 10 years period? 
 
-**Note**: this requires exactly 1 bit of information for each stock, namely only `r ncol(ProjectData)` bits of information with hindsight for the entire 10 years of `r ncol(ProjectData)` stocks, namely of `r ncol(ProjectData)*nrow(ProjectData)` real numbers. 
+**Note**: this requires exactly 1 bit of information for each stock, namely only `r ncol(ProjectData)` bits of information with hindsight for the entire 10 years of `r ncol(ProjectData)` stocks, namely of `r ncol(ProjectData) * nrow(ProjectData)` real numbers. 
 
 ---
 
@@ -177,8 +181,8 @@ What if we select (with hindsight) whether to follow a mean reverting or momentu
 The code:
 
 ```{r results='asis'}
-selected_strat=apply(mr_ProjectData,2,function(r) if (sum(r)<0) -r else r)
-selected_mr_market=apply(selected_strat,1,mean)
+selected_strat = apply(mr_ProjectData, 2, function(r) if ( sum(r) < 0 ) -r else r)
+selected_mr_market = apply(selected_strat, 1, mean)
 ```
 
 ---
@@ -186,7 +190,7 @@ selected_mr_market=apply(selected_strat,1,mean)
 ## Average of Selecting between Mean Reversion and Momentum for each Stock
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-names(selected_mr_market)<-names(market)
+names(selected_mr_market) <- names(market)
 pnl_plot(selected_mr_market)
 ```
 
@@ -198,14 +202,14 @@ One can repeat the same every day, or every time period of some length - fixing 
 
 ---
 
-## Averaging with Hindsight: Past `r round(nrow(ProjectData)/3)` days
+## Averaging with Hindsight: Recent Third of the Days
 
-Repeating the same but making the selection only using the performance of the past `r round(nrow(ProjectData)/3)` days
+Repeating the same but making the selection only using the performance of the recent third of the days, namely the last `r round(nrow(ProjectData) / 3)` days
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-recent_selected_strat=apply(tail(mr_ProjectData,round(nrow(ProjectData)/3)),2,function(r) if (sum(r)<0) -r else r)
-recent_selected_mr_market=apply(recent_selected_strat,1,mean)
-names(recent_selected_mr_market)<-names(tail(market,round(nrow(ProjectData)/3)))
+recent_selected_strat = apply(tail(mr_ProjectData, round(nrow(ProjectData) / 3)), 2, function(r) if ( sum(r) < 0 ) -r else r)
+recent_selected_mr_market = apply(recent_selected_strat, 1, mean)
+names(recent_selected_mr_market) <- names(tail(market, round(nrow(ProjectData) / 3)))
 pnl_plot(recent_selected_mr_market)
 ```
 
@@ -221,10 +225,10 @@ Note: For computational reasons and simplicity, all the analysis in this note is
 
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-SP500PCA<-PCA(ProjectData, graph=FALSE)
-Variance_Explained_Table<-SP500PCA$eig
-SP500_Eigenvalues=Variance_Explained_Table[,1]
-plot(SP500_Eigenvalues,main="The S&P 500 Daily Returns Eigenvalues", ylab="Value")
+SP500PCA <- PCA(ProjectData, graph = FALSE)
+Variance_Explained_Table = SP500PCA$eig
+SP500_Eigenvalues = Variance_Explained_Table[, 1]
+plot(SP500_Eigenvalues, main = "The S&P 500 Daily Returns Eigenvalues", ylab = "Value")
 ```
 
 ---
@@ -234,7 +238,7 @@ plot(SP500_Eigenvalues,main="The S&P 500 Daily Returns Eigenvalues", ylab="Value
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
 ## print result in a clean-slate table
 #Variance_Explained_Table[abs(Variance_Explained_Table)<MIN_VALUE]<-NA
-print(xtable(head(Variance_Explained_Table,5), caption="Eigenvalues and Variance Explained", digits=3), type="html",html.table.attributes = "class='table table-striped table-hover table-bordered'",caption.placement="top",comment = FALSE,include.rownames = TRUE)
+print(xtable(head( Variance_Explained_Table, 5 ), caption = "Eigenvalues and Variance Explained", digits = 3 ), type = "html", html.table.attributes = "class='table table-striped table-hover table-bordered'", caption.placement= "top", comment = FALSE, include.rownames = TRUE)
 ```
 
 ---
@@ -244,13 +248,18 @@ print(xtable(head(Variance_Explained_Table,5), caption="Eigenvalues and Variance
 
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-SP500PCA_simple<-eigen(cor(ProjectData))
-PCA_first_component=ProjectData%*%norm1(SP500PCA_simple$vectors[,1])
-if(sum(PCA_first_component)<0) {PCA_first_component=-PCA_first_component; flipped_sign=-1} else {flipped_sign=1}
-names(PCA_first_component)<-names(market)
+SP500PCA_simple = eigen(cor(ProjectData))
+PCA_first_component = ProjectData %*% norm1(SP500PCA_simple$vectors[, 1])
+if ( sum(PCA_first_component) < 0 ) {
+  PCA_first_component = -PCA_first_component
+  flipped_sign = -1
+  } else {
+    flipped_sign = 1
+    }
+names(PCA_first_component) <- names(market)
 ```
 
-Correlation with the market: `r cor(market,PCA_first_component)`
+Correlation with the market: `r cor(market, PCA_first_component)`
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
 pnl_plot(PCA_first_component)
@@ -261,9 +270,9 @@ pnl_plot(PCA_first_component)
 ## Portfolio weights of First Principal Component
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-component1_weights=flipped_sign*norm1(SP500PCA_simple$vectors[,1])
-names(component1_weights)<-colnames(ProjectData)
-plot(component1_weights,ylab="Principal Component Weights",xlab="Stock",main="First Principal Component: Weights on Stocks")
+component1_weights = flipped_sign * norm1(SP500PCA_simple$vectors[, 1])
+names(component1_weights) <- colnames(ProjectData)
+plot(component1_weights, ylab = "Principal Component Weights", xlab = "Stock", main = "First Principal Component: Weights on Stocks")
 ```
 
 ---
@@ -271,12 +280,16 @@ plot(component1_weights,ylab="Principal Component Weights",xlab="Stock",main="Fi
 ## Returns of Second Principal Component
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-PCA_second_component=ProjectData%*%norm1(SP500PCA_simple$vectors[,2])
-if(sum(PCA_second_component)<0) {PCA_second_component=-PCA_second_component; flipped_sign2=-1} else {flipped_sign2=1}
-names(PCA_second_component)<-names(market)
+PCA_second_component = ProjectData %*% norm1(SP500PCA_simple$vectors[, 2])
+if ( sum(PCA_second_component) < 0 ) {
+  PCA_second_component = -PCA_second_component 
+  flipped_sign2 = -1
+  } else {
+    flipped_sign2 = 1}
+names(PCA_second_component) <- names(market)
 ```
 
-Correlation with the market: `r cor(market,PCA_second_component)`
+Correlation with the market: `r cor(market, PCA_second_component)`
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
 pnl_plot(PCA_second_component)
@@ -287,18 +300,18 @@ pnl_plot(PCA_second_component)
 ## Portfolio weights of Second Principal Component
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-component2_weights=flipped_sign2*norm1(SP500PCA_simple$vectors[,2])
-names(component2_weights)<-colnames(ProjectData)
-plot(component2_weights,ylab="Principal Component Weights",xlab="Stock",main="Second Principal Component: Weights on Stocks")
+component2_weights = flipped_sign2 * norm1( SP500PCA_simple$vectors[, 2] )
+names( component2_weights ) <- colnames( ProjectData )
+plot( component2_weights, ylab = "Principal Component Weights", xlab = "Stock", main = "Second Principal Component: Weights on Stocks" )
 ```
 
 ---
 
 ## Top Long and Short Stocks in Second Principal Component
 
-Top 10 stocks with the largest positive weight: `r colnames(ProjectData)[sort(component2_weights,decreasing=TRUE,index.return=TRUE)$ix[1:10]]`
+Top 10 stocks with the largest positive weight: `r colnames(ProjectData)[sort(component2_weights, decreasing = TRUE, index.return = TRUE)$ix[1:10]]`
 
-Top 10 stocks with the largest negative weights: `r colnames(ProjectData)[sort(component2_weights,decreasing=FALSE,index.return=TRUE)$ix[1:10]]`. 
+Top 10 stocks with the largest negative weights: `r colnames(ProjectData)[sort(component2_weights, decreasing = FALSE, index.return = TRUE)$ix[1:10]]`. 
 
 ---
 
@@ -327,15 +340,19 @@ Top 10 stocks with the largest negative weights: `r colnames(ProjectData)[sort(c
 ## Residual Portfolios: Example Code (Part 1)
 
 ```{r results='asis'}
-SP500PCA_simple<-eigen(cor(ProjectData))
-TheFactors=SP500PCA_simple$vectors[,1:numb_components_used]
-TheFactors=apply(TheFactors,2,function(r) if (sum(ProjectData%*%r)<0) -norm1(r) else norm1(r))
-Factor_series=ProjectData%*%TheFactors
-demean_IVs=apply(Factor_series,2,function(r)r-use_mean_alpha*mean(r))
-ProjectData_demean=apply(ProjectData,2,function(r) r-use_mean_alpha*mean(r))
-stock_betas=(solve(t(demean_IVs)%*%demean_IVs)%*%t(demean_IVs))%*%(ProjectData_demean)
-stock_alphas= use_mean_alpha*matrix(apply(ProjectData_demean,2,mean)-t(stock_betas)%*%matrix(apply(Factor_series,2,mean),ncol=1),nrow=1)
-stock_alphas_matrix=rep(1,nrow(ProjectData))%*%stock_alphas
+SP500PCA_simple <- eigen(cor(ProjectData)) 
+TheFactors = SP500PCA_simple$vectors[, 1:numb_components_used]
+TheFactors = apply(TheFactors, 2, function(r) if ( sum(ProjectData%*%r) < 0)  -r  else r) 
+TheFactors = apply(TheFactors, 2, function(r) norm1(r)) 
+Factor_series = ProjectData %*% TheFactors
+demean_IVs = apply(Factor_series, 2, function(r) r - use_mean_alpha * mean(r)) 
+ProjectData_demean = apply(ProjectData, 2, function(r)  r - use_mean_alpha * mean(r)) 
+XXtY = (solve(t(demean_IVs) %*% demean_IVs) %*% t(demean_IVs))
+stock_betas = XXtY  %*% (ProjectData_demean) 
+Ybar = t(stock_betas) %*% matrix(apply(Factor_series, 2, mean), ncol = 1)
+stock_alphas = apply(ProjectData_demean, 2, mean) - Ybar
+stock_alphas = use_mean_alpha * matrix(stock_alphas, nrow = 1) 
+stock_alphas_matrix = rep( 1, nrow(ProjectData)) %*% stock_alphas
 ```
 
 ---
@@ -344,13 +361,15 @@ stock_alphas_matrix=rep(1,nrow(ProjectData))%*%stock_alphas
 
 ```{r results='asis'}
 # make sure each residuals portfolio invests a total of 1 dollar.
-stock_betas_stock=apply(rbind(stock_betas,rep(1,ncol(stock_betas))),2,norm1)
-stock_betas=head(stock_betas_stock,-1) # last one is the stock weight
-stock_weight=rep(1,nrow(ProjectData))%*%tail(stock_betas_stock,1)
-Stock_Residuals=stock_weight*ProjectData-(Factor_series%*%stock_betas + stock_alphas_matrix)
-rownames(Stock_Residuals)<-rownames(ProjectData)
+stock_betas_stock = apply(rbind( stock_betas, rep(1, ncol(stock_betas))), 2, norm1) 
+stock_betas = head(stock_betas_stock, -1)  # last one is the stock weight
+stock_weight = rep(1, nrow( ProjectData )) %*% tail(stock_betas_stock, 1) 
+Stock_Residuals = stock_weight * ProjectData - ( Factor_series %*% stock_betas + stock_alphas_matrix ) 
 ```
 
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+rownames(Stock_Residuals) <- rownames(ProjectData) 
+```
 ---
 
 ## Trading Long-Short Stocks-Risk Porftolios
@@ -362,14 +381,13 @@ Note that "trading the residuals" implies that every day we trade the portfolios
 ## Best Residual Portfolio (with hindsight)
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-rownames(Stock_Residuals)<-rownames(ProjectData)
-best_stock_res=which.max(apply(Stock_Residuals,2,sum))
+best_stock_res = which.max(apply(Stock_Residuals, 2, sum))
 ```
 
 Stock: `r colnames(ProjectData)[best_stock_res]` 
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-pnl_plot(Stock_Residuals[,best_stock_res,drop=F])
+pnl_plot(Stock_Residuals[, best_stock_res, drop = F])
 ```
 
 ---
@@ -377,15 +395,15 @@ pnl_plot(Stock_Residuals[,best_stock_res,drop=F])
 ## Most Mean Reverting Residuals Portfolio
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-mr_Stock_Residuals=-sign(shift(Stock_Residuals,1))*Stock_Residuals
-rownames(mr_Stock_Residuals)<-names(market)
-best_stock_mr_res=which.max(apply(mr_Stock_Residuals,2,sum))
+mr_Stock_Residuals = -sign(shift(Stock_Residuals, 1)) * Stock_Residuals
+rownames(mr_Stock_Residuals) <- names(market)
+best_stock_mr_res = which.max(apply(mr_Stock_Residuals, 2, sum))
 ```
 
 Stock: `r colnames(ProjectData)[best_stock_mr_res]` 
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-pnl_plot(mr_Stock_Residuals[,best_stock_mr_res,drop=F])
+pnl_plot(mr_Stock_Residuals[, best_stock_mr_res])
 ```
 
 ---
@@ -403,8 +421,8 @@ We select with hindsight whether to use mean reversion or momentum for each resi
 The Code: 
 
 ```{r results='asis'}
-selected_strat_res=apply(mr_Stock_Residuals,2,function(r) if (sum(r)<0) -r else r)
-selected_mr_market_res=apply(selected_strat_res,1,mean)
+selected_strat_res = apply(mr_Stock_Residuals, 2, function(r) if ( sum(r) < 0 ) -r else r )
+selected_mr_market_res = apply(selected_strat_res, 1, mean)
 ```
 
 ---
@@ -412,7 +430,7 @@ selected_mr_market_res=apply(selected_strat_res,1,mean)
 ## Average of Selection with Hindsight
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-names(selected_mr_market_res)<-names(market)
+names(selected_mr_market_res) <- names(market)
 pnl_plot(selected_mr_market_res)
 ```
 
@@ -435,9 +453,9 @@ Instead of selecting between mean reversion and momentum for each of the
 Here is the code for seeing the returns of such a portfolio. Try it by uncommenting the plot line.
 
 ```{r results='asis'}
-hindsight_long_short=apply(ProjectData,2,function(r) if (sum(r)<0) -r else r)
-hindsight_long_short_market=apply(hindsight_long_short,1,mean)
-names(hindsight_long_short_market)<-names(market)
+hindsight_long_short = apply(ProjectData, 2, function(r) if ( sum(r) < 0 ) -r else r)
+hindsight_long_short_market = apply(hindsight_long_short, 1, mean)
+names(hindsight_long_short_market) <- names(market)
 #pnl_plot(hindsight_long_short_market)
 ```
 
