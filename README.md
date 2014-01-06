@@ -1,4 +1,3 @@
-
 Data Analytics Case Study: 
 ---------------------------------------------------------
 
@@ -29,7 +28,7 @@ INSTRUCTIONS FOR PROJECT
 
 This will reproduce the default report and slides of this project, as well as  start the web-application for this project
 
-You can then click on the generated HTML files to view the report or the slides.
+You can then click on the generated HTML files in the doc directory to view the report or the slides.
 
 **MODIFYING AND RE-RUNNING**
 
