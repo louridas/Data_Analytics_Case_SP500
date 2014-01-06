@@ -21,9 +21,13 @@ shinyUI(pageWithSidebar(
     ###########################################################
     
     HTML("<hr>"),
-    HTML("<center><h3>Download the new report and Create a new Slides File </h3></center>"),
-    downloadButton('report'),
+    HTML("<h4>Download the new report </h4>"),
+    downloadButton('report', label = "Download"),
+    HTML("<hr>"),
+    HTML("<h4>Create the new slides in the Web_Application directory </h4>"),
+    downloadButton('slide', label = "Download"),
     HTML("<hr>")
+    
   ),
   
   mainPanel(

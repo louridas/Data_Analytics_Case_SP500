@@ -13,9 +13,6 @@ S&P500 Daily stock Returns
 Project Description
 ---------------------------------------------------------
 
-<p style = "font-family:helvetica; font-size:24px;">
-</p>
-
 
 The project is based on the paper  <a href="http://www.insead.edu/facultyresearch/research/doc.cfm?did=52770">Regularized Robust Portfolio Estimation</a> by T. Evgeniou, M. Pontil, D. Spinellis, R. Swiderski, and N. Nassuphis.
 

@@ -7,7 +7,7 @@ shinyServer(function(input, output,session) {
   #Note: Keep track of all the variables in final$varname...  
   final<-reactiveValues()
   
-    
+  
   output$parameters<-renderTable({
     #############################################################
     # Load here all the input variables, (SAME) like in RunStudy.R
@@ -37,12 +37,12 @@ shinyServer(function(input, output,session) {
     names(market)<-rownames(final$ProjectData)
     mr_strategy = -sign(shift(market,1))*market
     names(mr_strategy)<-names(market)
-
+    
     SP500PCA<-PCA(final$ProjectData, graph=FALSE)
     SP500PCA_simple<-eigen(cor(final$ProjectData))
     Variance_Explained_Table<-SP500PCA$eig
     SP500_Eigenvalues=Variance_Explained_Table[,1]
-
+    
     PCA_first_component=ProjectData%*%norm1(SP500PCA_simple$vectors[,1])
     PCA_second_component=ProjectData%*%norm1(SP500PCA_simple$vectors[,2])
     
@@ -63,7 +63,7 @@ shinyServer(function(input, output,session) {
     colnames(Stock_Residuals)<-colnames(final$ProjectData)
     mr_Stock_Residuals=-sign(shift(Stock_Residuals,1))*Stock_Residuals
     selected_strat_res=apply(mr_Stock_Residuals,2,function(r) if (sum(r)<0) -r else r)
-
+    
     res_market=apply(Stock_Residuals,1,mean)
     names(res_market)<-names(market)
     selected_mr_market_res=apply(selected_strat_res,1,mean)
@@ -84,7 +84,7 @@ shinyServer(function(input, output,session) {
     
     # Printout the basic parameters and anything else to show in the first tab
     allparameters=c(rownames(ProjectData)[input$start_date],rownames(ProjectData)[input$end_date],
-      nrow(final$ProjectData),ncol(final$ProjectData), input$numb_components_used,colnames(final$ProjectData))
+                    nrow(final$ProjectData),ncol(final$ProjectData), input$numb_components_used,colnames(final$ProjectData))
     allparameters<-matrix(allparameters,ncol=1)    
     rownames(allparameters)<-c("start date", "end date", "number of days", 
                                "number of stocks", "number of PCA components used",
@@ -93,10 +93,10 @@ shinyServer(function(input, output,session) {
     allparameters<-as.data.frame(allparameters)
     return(allparameters)   
   })
-
+  
   ################################################
   # These are the outputs of the various tabs 
-
+  
   output$stock_returns <- renderPlot({        
     stockx=final$ProjectData[,input$ind_stock,drop=F]
     rownames(stockx)<-rownames(final$ProjectData)
@@ -163,7 +163,13 @@ shinyServer(function(input, output,session) {
   
   output$report = downloadHandler(
     filename <- function() {paste(paste('SP500_Report',Sys.time() ),'.html')},
+    
     content = function(file) {
+      
+      filename.Rmd <- paste('SP500_Report', 'Rmd', sep=".")
+      filename.md <- paste('SP500_Report', 'md', sep=".")
+      filename.html <- paste('SP500_Report', 'html', sep=".")
+      
       #############################################################
       # All the (SAME) parameters that the report takes from RunStudy.R
       ProjectData<-final$ProjectData
@@ -173,26 +179,65 @@ shinyServer(function(input, output,session) {
       PCA_second_component<- final$PCA_second_component
       market<-final$market
       #############################################################
-
-      file.copy("../doc/SP500_slides.Rmd","SP500_slides.Rmd",overwrite=T)
-      file.copy("../doc/SP500_Report.Rmd","SP500_Report.Rmd",overwrite=T)
-      slidify("SP500_slides.Rmd")
+      
+      if (file.exists(filename.html))
+        file.remove(filename.html)
       unlink(".cache", recursive=TRUE)      
       unlink("assets", recursive=TRUE)      
       unlink("figures", recursive=TRUE)      
-      out = knit2html('SP500_Report.Rmd',quiet=TRUE)
+      
+      file.copy("../doc/SP500_Report.Rmd",filename.Rmd,overwrite=T)
+      out = knit2html(filename.Rmd,quiet=TRUE)
+      
       unlink(".cache", recursive=TRUE)      
       unlink("assets", recursive=TRUE)      
       unlink("figures", recursive=TRUE)      
-      file.remove("SP500_Report.Rmd")
-      file.remove("SP500_Slides.Rmd")
-      file.remove("SP500_Report.md")
-      file.remove("SP500_Slides.md")
+      file.remove(filename.Rmd)
+      file.remove(filename.md)
       
       file.rename(out, file) # move pdf to file for downloading
     },    
     contentType = 'application/pdf'
   )
   
+  # The new slide 
+  
+  output$slide = downloadHandler(
+    filename <- function() {paste(paste('SP500_Slides',Sys.time() ),'.html')},
+    
+    content = function(file) {
+      
+      filename.Rmd <- paste('SP500_Slides', 'Rmd', sep=".")
+      filename.md <- paste('SP500_Slides', 'md', sep=".")
+      filename.html <- paste('SP500_Slides', 'html', sep=".")
+      
+      #############################################################
+      # All the (SAME) parameters that the report takes from RunStudy.R
+      ProjectData<-final$ProjectData
+      numb_components_used <- input$numb_components_used
+      use_mean_alpha <- input$use_mean_alpha
+      PCA_first_component<- final$PCA_first_component
+      PCA_second_component<- final$PCA_second_component
+      market<-final$market
+      #############################################################
+      
+      if (file.exists(filename.html))
+        file.remove(filename.html)
+      unlink(".cache", recursive=TRUE)     
+      unlink("assets", recursive=TRUE)    
+      unlink("figures", recursive=TRUE)      
+      
+      file.copy("../doc/SP500_slides.Rmd",filename.Rmd,overwrite=T)
+      slidify(filename.Rmd)
+      
+      unlink(".cache", recursive=TRUE)     
+      unlink("assets", recursive=TRUE)    
+      unlink("figures", recursive=TRUE)      
+      file.remove(filename.Rmd)
+      file.remove(filename.md)
+      file.rename(filename.html, file) # move pdf to file for downloading      
+      },    
+    contentType = 'application/pdf'
+  )
   
 })
