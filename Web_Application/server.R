@@ -42,6 +42,9 @@ shinyServer(function(input, output,session) {
     SP500PCA_simple<-eigen(cor(final$ProjectData))
     Variance_Explained_Table<-SP500PCA$eig
     SP500_Eigenvalues=Variance_Explained_Table[,1]
+
+    PCA_first_component=ProjectData%*%norm1(SP500PCA_simple$vectors[,1])
+    PCA_second_component=ProjectData%*%norm1(SP500PCA_simple$vectors[,2])
     
     TheFactors=SP500PCA_simple$vectors[,1:input$numb_components_used,drop=F]
     TheFactors=apply(TheFactors,2,norm1)
@@ -70,6 +73,9 @@ shinyServer(function(input, output,session) {
     final$mr_strategy<-mr_strategy
     final$SP500PCA<-SP500PCA
     final$SP500PCA_simple<-SP500PCA_simple
+    final$PCA_first_component<-PCA_first_component
+    final$PCA_second_component<-PCA_second_component
+    
     final$SP500_Eigenvalues<-SP500_Eigenvalues
     final$Stock_Residuals<-Stock_Residuals
     final$res_market<-res_market
@@ -163,10 +169,26 @@ shinyServer(function(input, output,session) {
       ProjectData<-final$ProjectData
       numb_components_used <- input$numb_components_used
       use_mean_alpha <- input$use_mean_alpha
+      PCA_first_component<- final$PCA_first_component
+      PCA_second_component<- final$PCA_second_component
+      market<-final$market
       #############################################################
 
-      out = knit2html('../Reports_Slides/SP500_Report.Rmd')
+      file.copy("../doc/SP500_slides.Rmd","SP500_slides.Rmd",overwrite=T)
+      file.copy("../doc/SP500_Report.Rmd","SP500_Report.Rmd",overwrite=T)
+      slidify("SP500_slides.Rmd")
+      unlink(".cache", recursive=TRUE)      
+      unlink("assets", recursive=TRUE)      
+      unlink("figures", recursive=TRUE)      
+      out = knit2html('SP500_Report.Rmd',quiet=TRUE)
+      unlink(".cache", recursive=TRUE)      
+      unlink("assets", recursive=TRUE)      
+      unlink("figures", recursive=TRUE)      
+      file.remove("SP500_Report.Rmd")
+      file.remove("SP500_Slides.Rmd")
       file.remove("SP500_Report.md")
+      file.remove("SP500_Slides.md")
+      
       file.rename(out, file) # move pdf to file for downloading
     },    
     contentType = 'application/pdf'
