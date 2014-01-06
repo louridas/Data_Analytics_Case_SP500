@@ -46,3 +46,12 @@ and source this file again. A new report, slides, and (if needed) web applicatio
 [4] You can modify the parameters of the project and generate new customized reports through the web application. 
 
 **Note:** Please press the stop button in the Console window to stop running the web application when needed.
+
+**Note:** Sourcing the RunStudy.R file will create 2 new html file in the doc directory (one for the report and one for the slides). If you want to publish those online, you will need to move them to a gh-pages branch and delete them from the master branch afterwards. To do so please follow the following steps:
+1. commit the files in your master branch
+
+2. switch to the gh-pages branch (from the *Shell* (under the *Tools* menu), type *git checkout gh-pages*)
+
+3. Once in the gh-pages branch, you can copy the html files from the master branch by typing in the shell file the command *git checkout master doc/SP500_Report.html* and *git checkout master doc/SP500_Slides.html*. Your report and slides are now available online through gh-pages.
+
+4. You should now go back to the master branch (in the *Shell* type *git checkout master*) and delete the 2 html files from the doc directory (before pushing any new material back on your master branch on github).
