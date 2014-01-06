@@ -46,6 +46,7 @@ days_used = start_date:end_date
 ProjectData = ProjectData[days_used, stocks_used]
 source( "R/library.R" )
 
+unlink( "TMPdirSlides", recursive = TRUE )      
 dir.create( "TMPdirSlides" )
 setwd( "TMPdirSlides" )
 file.copy( "../doc/SP500_slides.Rmd","SP500_slides.Rmd", overwrite = T )
@@ -54,6 +55,7 @@ file.copy( 'SP500_Slides.html', "../doc/SP500_Slides.html", overwrite = T )
 setwd( "../" )
 unlink( "TMPdirSlides", recursive = TRUE )      
 
+unlink( "TMPdirReport", recursive = TRUE )      
 dir.create( "TMPdirReport" )
 setwd( "TMPdirReport" )
 file.copy( "../doc/SP500_Report.Rmd","SP500_Report.Rmd", overwrite = T )

@@ -260,9 +260,10 @@ Let's now use the first `r numb_components_used`  principal components as our **
 Although formally we need to de-mean the data in the calculations below, and also use a regression constant ("alpha"), one could still ignore these mathematical formalisms and set these means and alpha to 0 - since in practice going forward one cannot assume these would remain constant or have any value different from 0. Afterall if we know the market (mean) returns in the future we would not need any of these analysis. Hence we assume all means and alphas are 0. 
 </p> </blockquote>
 
-```{r results='asis'}
+```{r verbatimchunk, verbatim = TRUE}
 SP500PCA_simple<-eigen(cor(ProjectData))
-TheFactors=apply(SP500PCA_simple$vectors[,1:numb_components_used],2,function(r) if (sum(ProjectData%*%r)<0) -norm1(r) else norm1(r))
+TheFactors=SP500PCA_simple$vectors[,1:numb_components_used]
+TheFactors=apply(TheFactors,2,function(r) if (sum(ProjectData%*%r)<0) -norm1(r) else norm1(r))
 Factor_series=ProjectData%*%TheFactors
 demean_IVs=apply(Factor_series,2,function(r)r-use_mean_alpha*mean(r))
 ProjectData_demean=apply(ProjectData,2,function(r) r-use_mean_alpha*mean(r))
