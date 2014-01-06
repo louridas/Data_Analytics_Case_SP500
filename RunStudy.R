@@ -8,7 +8,7 @@ rm( list = ls( ) ) # clean up the workspace
 # THESE ARE THE PROJECT PARAMETERS NEEDED TO GENERATE THE REPORT
 
 # Please ENTER the name of the file with the data used. The file should contain a matrix with one row per observation (e.g. person) and one column per attribute. THE NAME OF THIS MATRIX NEEDS TO BE ProjectData (otherwise you will need to replace the name of the ProjectData variable below with whatever your variable name is, which you can see in your Workspace window after you load your file)
-datafile_name <- "ProjectData" # this is the default name of the data for a project
+datafile_name <- "DefaultData" # this is the default name of the data for a project
 ###########
 # DEFAULT PROJECT DATA FORMAT: File datafile_name must have a matrix called ProjectData of 
 # D rows and S columns, where D is the number of days and S the number of stocks
