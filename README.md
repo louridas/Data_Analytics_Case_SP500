@@ -48,6 +48,7 @@ and source this file again. A new report, slides, and (if needed) web applicatio
 **Note:** Please press the stop button in the Console window to stop running the web application when needed.
 
 **Note:** Sourcing the RunStudy.R file will create 2 new html file in the doc directory (one for the report and one for the slides). If you want to publish those online, you will need to move them to a gh-pages branch and delete them from the master branch afterwards. To do so please follow the following steps:
+
 1. commit the files in your master branch
 
 2. switch to the gh-pages branch (from the *Shell* (under the *Tools* menu), type *git checkout gh-pages*)
