@@ -1,33 +1,21 @@
 # Required R libraries (need to be installed - it can take a few minutes the first time you run the project)
 
-if (require(devtools) == FALSE) 
-  install.packages("devtools") 
+# installs all necessary libraries from CRAN
+get_libraries <- function(filenames_list) { 
+  lapply(filenames_list,function(thelibrary){    
+    if (do.call(require,list(thelibrary)) == FALSE) 
+      do.call(install.packages,list(thelibrary)) 
+    do.call(library,list(thelibrary))
+  })
+}
+
+libraries_used=c("devtools","shiny","knitr","graphics","grDevices","xtable","FactoMineR")
+get_libraries(libraries_used)
+
 if (require(slidifyLibraries) == FALSE) 
   install_github("slidifyLibraries", "ramnathv")
 if (require(slidify) == FALSE) 
   install_github("slidify", "ramnathv") 
-if (require(shiny) == FALSE ) 
-  install.packages("shiny")
-if (require(knitr) == FALSE ) 
-  install.packages("knitr")
-if (require(graphics) == FALSE) 
-  install.packages("graphics") 
-if (require(grDevices) == FALSE)
-  install.packages("grDevices") 
-if (require(xtable) == FALSE) 
-  install.packages("xtable")  
-if (require(FactoMineR) == FALSE) 
-  install.packages("FactoMineR") 
-
-library(devtools)
-library(slidifyLibraries)
-library(slidify)
-library(shiny)
-library(knitr)
-library(graphics)
-library(grDevices)
-library(xtable)
-library(FactoMineR)
 
 
 ########################################################

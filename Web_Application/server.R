@@ -4,42 +4,55 @@ options(shiny.maxRequestSize=30*1024^2)
 
 shinyServer(function(input, output,session) {
   
-  #Note: Keep track of all the variables in final$varname...  
-  final<-reactiveValues()
+  ############################################################
+  # STEP 1: Create the place to keep track of all the new variables 
+  # based on the inputs of the user 
+  new_values<-reactiveValues()
   
   
+  ############################################################
+  # STEP 2:  Read all the input variables, which are the SAME as in RunStudy.R
+  # Note: When we use these variables we need to take them from input$ and
+  # NOT from new_values$ !
   output$parameters<-renderTable({
-    #############################################################
-    # Load here all the input variables, (SAME) like in RunStudy.R
+
     inFile <- input$datafile_name
     if (is.null(inFile))
       return(NULL)    
     load(inFile$datapath)
-    final$start_date<-reactive({
+    new_values$start_date<-reactive({
       input$start_date
     }) 
-    final$end_date<-reactive({
+    new_values$end_date<-reactive({
       input$end_date
     })  
-    final$numb_components_used<-reactive({
+    new_values$numb_components_used<-reactive({
       input$numb_components_used
     })
-    final$use_mean_alpha<-reactive({
+    new_values$use_mean_alpha<-reactive({
       input$use_mean_alpha
     })    
-    #############################################################
+
+    ############################################################
+    # STEP 3: Create the new dataset that will be used in Step 3, using 
+    # the new inputs. Note that it uses only input$ variables
     
-    #############################################################
-    # Compute all necessary variables here, all at once
-    final$ProjectData<-ProjectData[input$start_date:input$end_date,]
+    new_values$ProjectData<-ProjectData[input$start_date:input$end_date,]
     
-    market=apply(final$ProjectData,1,mean)
-    names(market)<-rownames(final$ProjectData)
+    ############################################################
+    # STEP 4: Compute all the variables used in the Report and Slides: this
+    # is more or less a "cut-and-paste" from the R chunks of the reports
+    
+    # MOTE: again, for the input variables we must use input$ on the right hand side, 
+    # and not the new_values$ !
+    
+    market=apply(new_values$ProjectData,1,mean)
+    names(market)<-rownames(new_values$ProjectData)
     mr_strategy = -sign(shift(market,1))*market
     names(mr_strategy)<-names(market)
     
-    SP500PCA<-PCA(final$ProjectData, graph=FALSE)
-    SP500PCA_simple<-eigen(cor(final$ProjectData))
+    SP500PCA<-PCA(new_values$ProjectData, graph=FALSE)
+    SP500PCA_simple<-eigen(cor(new_values$ProjectData))
     Variance_Explained_Table<-SP500PCA$eig
     SP500_Eigenvalues=Variance_Explained_Table[,1]
     
@@ -48,19 +61,19 @@ shinyServer(function(input, output,session) {
     
     TheFactors=SP500PCA_simple$vectors[,1:input$numb_components_used,drop=F]
     TheFactors=apply(TheFactors,2,norm1)
-    TheFactors=apply(TheFactors,2,function(r)if (sum(final$ProjectData%*%r)<0) -r else r)
-    Factor_series=final$ProjectData%*%TheFactors
+    TheFactors=apply(TheFactors,2,function(r)if (sum(new_values$ProjectData%*%r)<0) -r else r)
+    Factor_series=new_values$ProjectData%*%TheFactors
     demean_IVs=apply(Factor_series,2,function(r)r-use_mean_alpha*mean(r))
-    ProjectData_demean=apply(final$ProjectData,2,function(r) r-use_mean_alpha*mean(r))
+    ProjectData_demean=apply(new_values$ProjectData,2,function(r) r-use_mean_alpha*mean(r))
     stock_betas=(solve(t(demean_IVs)%*%demean_IVs)%*%t(demean_IVs))%*%(ProjectData_demean)
     stock_alphas= use_mean_alpha*matrix(apply(ProjectData_demean,2,mean)-t(stock_betas)%*%matrix(apply(Factor_series,2,mean),ncol=1),nrow=1)
-    stock_alphas_matrix=rep(1,nrow(final$ProjectData))%*%stock_alphas
+    stock_alphas_matrix=rep(1,nrow(new_values$ProjectData))%*%stock_alphas
     # make sure each residuals portfolio invests a total of 1 dollar.
     stock_betas_stock=apply(rbind(stock_betas,rep(1,ncol(stock_betas))),2,norm1)
     stock_betas=head(stock_betas_stock,-1) # last one is the stock weight
-    stock_weight=rep(1,nrow(final$ProjectData))%*%tail(stock_betas_stock,1)
-    Stock_Residuals=stock_weight*final$ProjectData-(Factor_series%*%stock_betas + stock_alphas_matrix)
-    colnames(Stock_Residuals)<-colnames(final$ProjectData)
+    stock_weight=rep(1,nrow(new_values$ProjectData))%*%tail(stock_betas_stock,1)
+    Stock_Residuals=stock_weight*new_values$ProjectData-(Factor_series%*%stock_betas + stock_alphas_matrix)
+    colnames(Stock_Residuals)<-colnames(new_values$ProjectData)
     mr_Stock_Residuals=-sign(shift(Stock_Residuals,1))*Stock_Residuals
     selected_strat_res=apply(mr_Stock_Residuals,2,function(r) if (sum(r)<0) -r else r)
     
@@ -69,69 +82,76 @@ shinyServer(function(input, output,session) {
     selected_mr_market_res=apply(selected_strat_res,1,mean)
     names(selected_mr_market_res)<-names(market)
     
-    final$market<-market
-    final$mr_strategy<-mr_strategy
-    final$SP500PCA<-SP500PCA
-    final$SP500PCA_simple<-SP500PCA_simple
-    final$PCA_first_component<-PCA_first_component
-    final$PCA_second_component<-PCA_second_component
+    ############################################################
+    # STEP 5: Store all new calculated variables in new_values$ so that the tabs 
+    # read them directly. 
+    # NOTE: the tabs below do not do many calculations as they are all done in Step 4
     
-    final$SP500_Eigenvalues<-SP500_Eigenvalues
-    final$Stock_Residuals<-Stock_Residuals
-    final$res_market<-res_market
-    final$selected_mr_market_res<-selected_mr_market_res
+    new_values$market<-market
+    new_values$mr_strategy<-mr_strategy
+    new_values$SP500PCA<-SP500PCA
+    new_values$SP500PCA_simple<-SP500PCA_simple
+    new_values$PCA_first_component<-PCA_first_component
+    new_values$PCA_second_component<-PCA_second_component
+    
+    new_values$SP500_Eigenvalues<-SP500_Eigenvalues
+    new_values$Stock_Residuals<-Stock_Residuals
+    new_values$res_market<-res_market
+    new_values$selected_mr_market_res<-selected_mr_market_res
     #############################################################
     
     # Printout the basic parameters and anything else to show in the first tab
     allparameters=c(rownames(ProjectData)[input$start_date],rownames(ProjectData)[input$end_date],
-                    nrow(final$ProjectData),ncol(final$ProjectData), input$numb_components_used,colnames(final$ProjectData))
+                    nrow(new_values$ProjectData),ncol(new_values$ProjectData), input$numb_components_used,colnames(new_values$ProjectData))
     allparameters<-matrix(allparameters,ncol=1)    
     rownames(allparameters)<-c("start date", "end date", "number of days", 
                                "number of stocks", "number of PCA components used",
-                               rep("Stock:",ncol(final$ProjectData)))
+                               paste("Stock:",1:ncol(new_values$ProjectData)))
     colnames(allparameters)<-NULL
     allparameters<-as.data.frame(allparameters)
     return(allparameters)   
   })
   
-  ################################################
-  # These are the outputs of the various tabs 
+  ############################################################
+  # STEP 6: These are now just the outputs of the various tabs. There
+  # is one output per tab, plot or table or... (type help(renredPlot) for example
+  # to see various options) 
   
   output$stock_returns <- renderPlot({        
-    stockx=final$ProjectData[,input$ind_stock,drop=F]
-    rownames(stockx)<-rownames(final$ProjectData)
+    stockx=new_values$ProjectData[,input$ind_stock,drop=F]
+    rownames(stockx)<-rownames(new_values$ProjectData)
     pnl_plot(stockx)    
   })
   
   output$histogram<-renderPlot({    
-    hist(final$ProjectData,main="Histogram of All Daily Stock Returns",xlab="Daily Stock Returns (%)", breaks=200)
+    hist(new_values$ProjectData,main="Histogram of All Daily Stock Returns",xlab="Daily Stock Returns (%)", breaks=200)
   })
   
   output$market <- renderPlot({    
-    pnl_plot(final$market)    
+    pnl_plot(new_values$market)    
   })
   
   output$mr_strategy <- renderPlot({        
-    pnl_plot(final$mr_strategy)
+    pnl_plot(new_values$mr_strategy)
   })
   
   output$chosen_stock <- renderPlot({    
-    tmp=apply(final$ProjectData,2,sum)
+    tmp=apply(new_values$ProjectData,2,sum)
     chosen_id=sort(tmp,decreasing=TRUE,index.return=TRUE)$ix[input$stock_order]
-    chosen_stock=final$ProjectData[,chosen_id,drop=F]
-    rownames(chosen_stock)<-rownames(final$ProjectData)
+    chosen_stock=new_values$ProjectData[,chosen_id,drop=F]
+    rownames(chosen_stock)<-rownames(new_values$ProjectData)
     pnl_plot(chosen_stock)
   })
   
   output$eigen_plot <- renderPlot({    
-    plot(final$SP500_Eigenvalues,main="The S&P 500 Daily Returns Eigenvalues", ylab="Value")
+    plot(new_values$SP500_Eigenvalues,main="The S&P 500 Daily Returns Eigenvalues", ylab="Value")
   })
   
   output$eigen_returns <- renderPlot({   
     ###### Just load all necessary variables so that we can use the code as is from the report
-    ProjectData<-final$ProjectData
-    market<-final$market
-    SP500PCA_simple<-final$SP500PCA_simple
+    ProjectData<-new_values$ProjectData
+    market<-new_values$market
+    SP500PCA_simple<-new_values$SP500PCA_simple
     ######
     
     # Note the abuse of the variable name: it does not need to be the first eigenvector
@@ -143,23 +163,28 @@ shinyServer(function(input, output,session) {
   })
   
   output$chosen_residual <- renderPlot({    
-    tmp=apply(final$Stock_Residuals,2,sum)
+    tmp=apply(new_values$Stock_Residuals,2,sum)
     chosen_id=sort(tmp,decreasing=TRUE,index.return=TRUE)$ix[input$residuals_order]
-    chosen_stock=final$Stock_Residuals[,chosen_id,drop=F]
-    rownames(chosen_stock)<-names(final$market)
+    chosen_stock=new_values$Stock_Residuals[,chosen_id,drop=F]
+    rownames(chosen_stock)<-names(new_values$market)
     pnl_plot(chosen_stock)
   })
   
   output$res_market <- renderPlot({    
-    pnl_plot(final$res_market)  
+    pnl_plot(new_values$res_market)  
   })
   
   output$res_hindsight <- renderPlot({    
-    pnl_plot(final$selected_mr_market_res)
+    pnl_plot(new_values$selected_mr_market_res)
   })
   
   
-  # The new report
+  ############################################################
+  # STEP 7: There are again outputs, but they are "special" one as
+  # they produce the reports and slides. See the internal structure 
+  # for both of them - which is the same for both.
+
+  # The new report 
   
   output$report = downloadHandler(
     filename <- function() {paste(paste('SP500_Report',Sys.time() ),'.html')},
@@ -172,12 +197,12 @@ shinyServer(function(input, output,session) {
       
       #############################################################
       # All the (SAME) parameters that the report takes from RunStudy.R
-      ProjectData<-final$ProjectData
+      ProjectData<-new_values$ProjectData
       numb_components_used <- input$numb_components_used
       use_mean_alpha <- input$use_mean_alpha
-      PCA_first_component<- final$PCA_first_component
-      PCA_second_component<- final$PCA_second_component
-      market<-final$market
+      PCA_first_component<- new_values$PCA_first_component
+      PCA_second_component<- new_values$PCA_second_component
+      market<-new_values$market
       #############################################################
       
       if (file.exists(filename.html))
@@ -213,12 +238,12 @@ shinyServer(function(input, output,session) {
       
       #############################################################
       # All the (SAME) parameters that the report takes from RunStudy.R
-      ProjectData<-final$ProjectData
+      ProjectData<-new_values$ProjectData
       numb_components_used <- input$numb_components_used
       use_mean_alpha <- input$use_mean_alpha
-      PCA_first_component<- final$PCA_first_component
-      PCA_second_component<- final$PCA_second_component
-      market<-final$market
+      PCA_first_component<- new_values$PCA_first_component
+      PCA_second_component<- new_values$PCA_second_component
+      market<-new_values$market
       #############################################################
       
       if (file.exists(filename.html))
