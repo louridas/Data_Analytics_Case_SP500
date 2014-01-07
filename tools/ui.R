@@ -27,14 +27,15 @@ shinyUI(pageWithSidebar(
     ###########################################################
     # STEP 2.2: read the INPUTS. 
     # THESE ARE THE *SAME* INPUT PARAMETERS AS IN THE RunStudy.R
+
     numericInput("start_date", "Select Starting date (1 to number of days):", 1),
     numericInput("end_date", "Select End date (more than starting date, less than total number of dates):", 2586),
     numericInput("numb_components_used", "Select the number of PCA risk factors (between 1 and the total number of stocks):", 3),
     numericInput("use_mean_alpha", "Demean the data? (0 or 1; default is 0):", 0),
-    ###########################################################
     
     ###########################################################
     # STEP 2.3: buttons to download the new report and new slides 
+
     HTML("<hr>"),
     HTML("<h4>Download the new report </h4>"),
     downloadButton('report', label = "Download"),
@@ -60,8 +61,8 @@ shinyUI(pageWithSidebar(
     # NOTE: each tab has a name that appears in the web app, as well as a
     # "variable" which has exactly the same name as the variables in the 
     # output$ part of code in the server.R file 
-    # (e.g. plotOutput('mr_strategy') corresponds to output$mr_strategy in server.r)
-
+    # (e.g. tableOutput('parameters') corresponds to output$parameters in server.r)
+    
     tabsetPanel(
       
       tabPanel("Parameters", tableOutput('parameters')),

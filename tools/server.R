@@ -98,9 +98,11 @@ shinyServer(function(input, output,session) {
     new_values$Stock_Residuals<-Stock_Residuals
     new_values$res_market<-res_market
     new_values$selected_mr_market_res<-selected_mr_market_res
+
     #############################################################
+    # STEP 5b: Print whatever basic information about the selected data needed. 
+    # THese will show in the first tab of the application (called "parameters")
     
-    # Printout the basic parameters and anything else to show in the first tab
     allparameters=c(rownames(ProjectData)[input$start_date],rownames(ProjectData)[input$end_date],
                     nrow(new_values$ProjectData),ncol(new_values$ProjectData), input$numb_components_used,colnames(new_values$ProjectData))
     allparameters<-matrix(allparameters,ncol=1)    
