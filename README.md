@@ -41,7 +41,7 @@ and source this file again. A new report, slides, and (if needed) web applicatio
 (NOTE: if the web application is running, you will need to first stop that by clicking on the "stop" button in the concole window of your Rstudio)
 
 
-[3] To modify the text of the report or the slides, please edit the .Rmd files in the Reports_Slides directory. To modify the Web Application please edit the ui.R and server.R files in the Web_Application directory. After any modifications please repeat step 2 to generate the new report, slides, and launch the new Web application. 
+[3] To modify the text of the report or the slides, please edit the .Rmd files in the Reports_Slides directory. To modify the Web Application please edit the ui.R and server.R files in the tools directory. After any modifications please repeat step 2 to generate the new report, slides, and launch the new Web application. 
 
 [4] You can modify the parameters of the project and generate new customized reports through the web application. 
 

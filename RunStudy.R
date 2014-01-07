@@ -65,4 +65,4 @@ setwd( "../" )
 unlink( "TMPdirReport", recursive = TRUE )      
 
 if ( strat_webapp )
-  runApp( "Web_Application" )
+  runApp( "tools" )
