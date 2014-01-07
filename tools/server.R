@@ -120,9 +120,16 @@ shinyServer(function(input, output,session) {
   # to see various options) 
   
   output$stock_returns <- renderPlot({        
-    stockx=new_values$ProjectData[,input$ind_stock,drop=F]
-    rownames(stockx)<-rownames(new_values$ProjectData)
-    pnl_plot(stockx)    
+    is_valid_stock<-length(which(colnames(new_values$ProjectData) == input$ind_stock))
+    if (is_valid_stock != 0 ){
+      stockx=new_values$ProjectData[,input$ind_stock,drop=F]
+      rownames(stockx)<-rownames(new_values$ProjectData)
+      pnl_plot(stockx)          
+    } else {
+      stockx=seq(1,nrow(new_values$ProjectData), 200/nrow(new_values$ProjectData))
+      plot(cumsum(stockx),main=paste(paste("Stock",input$ind_stock,sep=" "), 
+                                     "does not exist. See the Parameters tab for available stocks",sep=" "), type="l")
+    }
   })
   
   output$histogram<-renderPlot({    
