@@ -9,13 +9,19 @@ get_libraries <- function(filenames_list) {
   })
 }
 
-libraries_used=c("devtools","shiny","knitr","graphics","grDevices","xtable","FactoMineR")
+libraries_used=c("devtools","shiny","knitr","graphics","reshape2","RJSONIO","grDevices","xtable","FactoMineR")
 get_libraries(libraries_used)
 
 if (require(slidifyLibraries) == FALSE) 
   install_github("slidifyLibraries", "ramnathv")
 if (require(slidify) == FALSE) 
   install_github("slidify", "ramnathv") 
+if (require(rCharts) == FALSE) 
+  install_github('rCharts', 'ramnathv')
+if (require(shinyRGL) == FALSE) 
+  install_github("shinyRGL", "trestletech")
+if (require(shiny-incubator) == FALSE) 
+  install_github("shiny-incubator", "rstudio")
 
 
 ########################################################
@@ -72,4 +78,33 @@ shift <- function(a, n = 1, filler = 0){
   } else {
     rbind(tail( x, n ), matrix(filler, ncol = ncol( x ), nrow = abs( n )))
   }
+}
+
+non_zero_mean<-function(x,n)ifelse(sum(x!=0)<n,0,mean(x[x!=0]))
+
+month_names<-c("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+
+datestring2year<-function(x)as.POSIXlt(x,format="%Y-%m-%d")$year+1900
+
+datestring2month<-function(x)month_names[as.POSIXlt(x,format="%Y-%m-%d")$mon+1]
+
+xlapply<-function(x,y,fun,...){
+  i<-as.vector(row(matrix(0,nrow=length(x),ncol=length(y))))
+  j<-as.vector(col(matrix(0,nrow=length(x),ncol=length(y))))
+  matrix(simplify2array(mapply(function(a,b)fun(x[[a]],y[[b]],...),i,j)),nrow=length(x),ncol=length(y),dimnames=list(names(x),names(y)))
+}
+
+pnl_matrix<-function(perf, digits = 1, geometric = FALSE){
+  if(geometric)
+    f <- function(v) prod(1+v)-1
+  else
+    f <- function(v) sum(v)
+  
+  if(any(class(perf) %in% c("matrix"))) x<-apply(perf,1,non_zero_mean,1) else x<-perf
+  years<-as.list(unique(datestring2year(names(x))))
+  names(years)<-years
+  names(month_names)<-month_names
+  monthly_returns<-lapply(split(x,list(datestring2month(names(x)),datestring2year(names(x)))), f)
+  res <- xlapply(years,month_names,function(y,m)monthly_returns[[paste(m,y,sep=".")]])
+  round(cbind(res,Year = apply(res,1, f))*100, digits) 
 }

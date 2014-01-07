@@ -1,6 +1,8 @@
 
 # To be able to upload data up to 30MB
 options(shiny.maxRequestSize=30*1024^2)
+options(rgl.useNULL=TRUE)
+options(scipen = 50)
 
 shinyServer(function(input, output,session) {
   
@@ -15,7 +17,7 @@ shinyServer(function(input, output,session) {
   # Note: When we use these variables we need to take them from input$ and
   # NOT from new_values$ !
   output$parameters<-renderTable({
-
+    
     inFile <- input$datafile_name
     if (is.null(inFile))
       return(NULL)    
@@ -32,7 +34,7 @@ shinyServer(function(input, output,session) {
     new_values$use_mean_alpha<-reactive({
       input$use_mean_alpha
     })    
-
+    
     ############################################################
     # STEP 3: Create the new dataset that will be used in Step 3, using 
     # the new inputs. Note that it uses only input$ variables
@@ -46,10 +48,13 @@ shinyServer(function(input, output,session) {
     # MOTE: again, for the input variables we must use input$ on the right hand side, 
     # and not the new_values$ !
     
-    market=apply(new_values$ProjectData,1,mean)
-    names(market)<-rownames(new_values$ProjectData)
-    mr_strategy = -sign(shift(market,1))*market
-    names(mr_strategy)<-names(market)
+    market=matrix(apply(new_values$ProjectData,1,mean),ncol=1)
+    rownames(market)<-rownames(new_values$ProjectData)
+    mr_strategy = matrix(-sign(shift(market,1))*market,ncol=1)
+    rownames(mr_strategy)<-rownames(market)
+    
+    both_markets = matrix(0.5*(market + mr_strategy),ncol=1)
+    rownames(both_markets)<-rownames(market)
     
     SP500PCA<-PCA(new_values$ProjectData, graph=FALSE)
     SP500PCA_simple<-eigen(cor(new_values$ProjectData))
@@ -75,12 +80,13 @@ shinyServer(function(input, output,session) {
     Stock_Residuals=stock_weight*new_values$ProjectData-(Factor_series%*%stock_betas + stock_alphas_matrix)
     colnames(Stock_Residuals)<-colnames(new_values$ProjectData)
     mr_Stock_Residuals=-sign(shift(Stock_Residuals,1))*Stock_Residuals
-    selected_strat_res=apply(mr_Stock_Residuals,2,function(r) if (sum(r)<0) -r else r)
+    selected_strat_res=apply(mr_Stock_Residuals,2,function(r) if (sum(r) <= 0) -r else r)
     
     res_market=apply(Stock_Residuals,1,mean)
-    names(res_market)<-names(market)
-    selected_mr_market_res=apply(selected_strat_res,1,mean)
-    names(selected_mr_market_res)<-names(market)
+    names(res_market)<-rownames(market)
+    selected_mr_market_res=matrix(apply(selected_strat_res,1,mean),ncol=1)
+    colnames(selected_mr_market_res)<-"hindsight"
+    rownames(selected_mr_market_res)<-rownames(market)
     
     ############################################################
     # STEP 5: Store all new calculated variables in new_values$ so that the tabs 
@@ -89,6 +95,7 @@ shinyServer(function(input, output,session) {
     
     new_values$market<-market
     new_values$mr_strategy<-mr_strategy
+    new_values$both_markets<-both_markets
     new_values$SP500PCA<-SP500PCA
     new_values$SP500PCA_simple<-SP500PCA_simple
     new_values$PCA_first_component<-PCA_first_component
@@ -98,7 +105,7 @@ shinyServer(function(input, output,session) {
     new_values$Stock_Residuals<-Stock_Residuals
     new_values$res_market<-res_market
     new_values$selected_mr_market_res<-selected_mr_market_res
-
+    
     #############################################################
     # STEP 5b: Print whatever basic information about the selected data needed. 
     # THese will show in the first tab of the application (called "parameters")
@@ -126,22 +133,54 @@ shinyServer(function(input, output,session) {
       rownames(stockx)<-rownames(new_values$ProjectData)
       pnl_plot(stockx)          
     } else {
-      stockx=seq(1,nrow(new_values$ProjectData), 200/nrow(new_values$ProjectData))
+      stockx= rep(0.01, nrow(new_values$ProjectData))
       plot(cumsum(stockx),main=paste(paste("Stock",input$ind_stock,sep=" "), 
-                                     "does not exist. See the Parameters tab for available stocks",sep=" "), type="l")
+                                     "does not exist. \nSee the Parameters tab for available stocks",sep=" "), type="l")
     }
+  })
+  
+  output$stock_pnl_matrix<-renderHeatmap({ 
+    is_valid_stock<-length(which(colnames(new_values$ProjectData) == input$ind_stock))
+    if (is_valid_stock != 0 ){
+      stockx=new_values$ProjectData[,input$ind_stock,drop=F]
+      stockx=stockx/100
+      rownames(stockx)<-rownames(new_values$ProjectData)
+      colnames(stockx)<-colnames(new_values$ProjectData)[input$ind_stock]
+    } else {
+      stockx=matrix(rep(0.01, nrow(new_values$ProjectData)),ncol=1)
+      rownames(stockx)<-rownames(new_values$ProjectData)
+      colnames(stockx)<-"Stock does not exist"
+      
+    }
+    pnl_matrix(stockx)
   })
   
   output$histogram<-renderPlot({    
     hist(new_values$ProjectData,main="Histogram of All Daily Stock Returns",xlab="Daily Stock Returns (%)", breaks=200)
   })
   
-  output$market <- renderPlot({    
+  output$market <- renderPlot({   
     pnl_plot(new_values$market)    
+  })
+  
+  output$market_pnl_matrix<-renderHeatmap({ 
+    pnl_matrix(new_values$market/100)
   })
   
   output$mr_strategy <- renderPlot({        
     pnl_plot(new_values$mr_strategy)
+  })
+  
+  output$mr_strategy_pnl_matrix<-renderHeatmap({ 
+    pnl_matrix(new_values$mr_strategy/100)
+  })
+  
+  output$both_markets <- renderPlot({   
+    pnl_plot(new_values$both_markets)    
+  })
+  
+  output$both_markets_pnl_matrix<-renderHeatmap({ 
+    pnl_matrix(new_values$both_markets/100)
   })
   
   output$chosen_stock <- renderPlot({    
@@ -151,6 +190,16 @@ shinyServer(function(input, output,session) {
     rownames(chosen_stock)<-rownames(new_values$ProjectData)
     pnl_plot(chosen_stock)
   })
+  
+  output$chosen_stock_pnl_matrix <- renderHeatmap({    
+    tmp=apply(new_values$ProjectData,2,sum)
+    chosen_id=sort(tmp,decreasing=TRUE,index.return=TRUE)$ix[input$stock_order]
+    chosen_stock=matrix(new_values$ProjectData[,chosen_id,drop=F],ncol=1)
+    chosen_stock=chosen_stock/100
+    rownames(chosen_stock)<-rownames(new_values$ProjectData)
+    pnl_matrix(chosen_stock)
+  })
+  
   
   output$eigen_plot <- renderPlot({    
     plot(new_values$SP500_Eigenvalues,main="The S&P 500 Daily Returns Eigenvalues", ylab="Value")
@@ -166,9 +215,23 @@ shinyServer(function(input, output,session) {
     # Note the abuse of the variable name: it does not need to be the first eigenvector
     PCA_first_component=ProjectData%*%norm1(SP500PCA_simple$vectors[,input$vector_plotted])
     if(sum(PCA_first_component)<0) {PCA_first_component=-PCA_first_component; flipped_sign=-1} else {flipped_sign=1}
-    names(PCA_first_component)<-names(market)
+    names(PCA_first_component)<-rownames(market)
     
     pnl_plot(PCA_first_component)
+  })
+  
+  output$eigen_strategy_pnl_matrix<-renderHeatmap({ 
+    ###### Just load all necessary variables so that we can use the code as is from the report
+    ProjectData<-new_values$ProjectData
+    market<-new_values$market
+    SP500PCA_simple<-new_values$SP500PCA_simple
+    ######
+    
+    # Note the abuse of the variable name: it does not need to be the first eigenvector
+    PCA_first_component=ProjectData%*%norm1(SP500PCA_simple$vectors[,input$vector_plotted])
+    if(sum(PCA_first_component)<0) {PCA_first_component=-PCA_first_component; flipped_sign=-1} else {flipped_sign=1}
+    names(PCA_first_component)<-rownames(market)
+    pnl_matrix(PCA_first_component/100)
   })
   
   output$chosen_residual <- renderPlot({    
@@ -188,11 +251,12 @@ shinyServer(function(input, output,session) {
   })
   
   
+  
   ############################################################
   # STEP 7: There are again outputs, but they are "special" one as
   # they produce the reports and slides. See the internal structure 
   # for both of them - which is the same for both.
-
+  
   # The new report 
   
   output$report = downloadHandler(
@@ -270,7 +334,7 @@ shinyServer(function(input, output,session) {
       file.remove(filename.Rmd)
       file.remove(filename.md)
       file.rename(filename.html, file) # move pdf to file for downloading      
-      },    
+    },    
     contentType = 'application/pdf'
   )
   

@@ -41,7 +41,9 @@ hist(ProjectData, main = "Histogram of All Daily Stock Returns", xlab = "Daily S
 The equal-weight average of these stocks (the "equal weight market") has performed as follows:
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-market = apply(ProjectData, 1, mean)
+market = matrix(apply(ProjectData, 1, mean),ncol=1)
+rownames(market)<-rownames(ProjectData)
+colnames(market)<-"Eq. Weight Market"
 pnl_plot(market)
 ```
 
@@ -51,6 +53,12 @@ where dd is the maximum drawdown and gain_ratio is the percentage of the days th
 <blockquote> <p>
 All returns reported correspond to the total sum of returns if we invest every day 1 dollar. For example, in this case the market returns is `r sum(market)`%, which means that we would have made a total of `r sum(market)`% of 1 dollar, namely `r sum(market) * 1 / 100` dollars. If the return was, say, -200%, we would have lost 2 dollars.  
 </p> </blockquote>
+
+Here are the monthly and yearly returns of this market:
+
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+cat(renderHeatmapX(pnl_matrix((market/100)), border=1))
+```
 
 These are some basic summary statistics about this market's daily returns:
 
@@ -63,6 +71,15 @@ print(xtable(market_summary, caption = "Summary Statistics Daily Market Returns"
 ```
 </div>
 </div>
+
+And this is an *Interactive chart:* (if you put the mouse on the plot you can see daily values)
+
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+thedates=sapply(rownames(ProjectData),function(x) as.Date(x))
+data.frame.market<-data.frame(TheDate=thedates,ReturnsSoFar=cumsum(market), row_names=rownames(ProjectData))
+int_market <- nvd3Plot(ReturnsSoFar ~ TheDate, data = data.frame.market, id = 'chart', type = 'lineChart')
+int_market$print(include_assets = TRUE, cdn = TRUE)
+```
 
 
 If we select With hindsight the best individual stock in terms of returns, it performs as follows:
@@ -89,8 +106,9 @@ We will build on the basic **mean-reverting** strategy from
 <a href="http://press.princeton.edu/titles/5904.html">The Econometrics of Financial Markets</a> by J. Campbell, A. Lo, and C. MacKinlay. 
 
 ```{r results='asis'}
-mr_strategy = -sign(shift(market, 1)) * market
-names(mr_strategy) <- names(market)
+mr_strategy = matrix(-sign(shift(market, 1)) * market,ncol=1)
+colnames(mr_strategy) <- "Market Mean Reversion"
+rownames(mr_strategy) <- rownames(market)
 ```
 
 which, when applied to the equally weighted market performs as follows:
@@ -101,23 +119,44 @@ pnl_plot(mr_strategy)
 
 We see the **special period during the financial crisis**. 
 
+Here are the monthly and yearly returns of this mean reversion strategy:
+
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+cat(renderHeatmapX(pnl_matrix((mr_strategy/100)), border=1))
+```
+
 If we were to implement this *only the days when the previous day the market fell*, this would perform as follows:
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-mr_down = mr_strategy * ( shift(market, 1) < 0 )
-names(mr_down) <- names(market)
+mr_down = matrix(mr_strategy * ( shift(market, 1) < 0 ), ncol=1)
+rownames(mr_down) <- rownames(market)
+colnames(mr_down)<- "Mean reversion on Down Days"
 pnl_plot(mr_down)
 ```
 
 while the days when the previous day the market rose, this performed as follows:
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-mr_up = mr_strategy * ( shift(market, 1) >= 0 )
-names(mr_up) <- names(market)
+mr_up = matrix(mr_strategy * ( shift(market, 1) >= 0 ),ncol=1)
+rownames(mr_up) <- rownames(market)
+colnames(mr_up)<- "Mean reversion on Up Days"
 pnl_plot(mr_up)
 ```
 
-The difference in bevavior is quite visible. Moreover, we can see **different market regimes** during this period. 
+with montly returns as follows:
+
+Here are the monthly and yearly returns of this "down market days only"" mean reversion strategy:
+
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+cat(renderHeatmapX(pnl_matrix((mr_down/100)), border=1))
+```
+
+The difference in bevavior is quite visible. 
+
+<blockquote> <p>
+Moreover, we can clearly see the financial crisis (and probably that there are different market regimes). 
+</p> </blockquote>
+
 
 If we select with hindsight the best individual stock in terms of returns for this simple strategy (**the most mean reverting S&P500 stock the past 10 years**), it performs as follows:
 
@@ -140,7 +179,7 @@ The "market" of the mean-reverting strategies is:
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
 mr_market = apply(mr_ProjectData, 1, mean)
-names(mr_market) <- names(market)
+names(mr_market) <- rownames(market)
 pnl_plot(mr_market)
 ```
 
@@ -149,7 +188,7 @@ Notice that one could also use the following **momentum** strategy instead:
 
 ```{r results='asis'}
 mom_strategy = sign(shift(market, 1)) * market
-names(mom_strategy) <- names(market)
+names(mom_strategy) <- rownames(market)
 ```
 
 which would lead to the exact opposite returns when used for the market. Clearly `r colnames(ProjectData)[worst_stock_mr]` has now the best returns based on this momentum strategy. 
@@ -159,7 +198,7 @@ If we could separate the stocks into momentum and mean reverting (e.g. for each 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
 selected_strat = apply(mr_ProjectData, 2, function(r) if ( sum(r) < 0 ) -r else r)
 selected_mr_market = apply(selected_strat, 1, mean)
-names(selected_mr_market) <- names(market)
+names(selected_mr_market) <- rownames(market)
 pnl_plot(selected_mr_market)
 ```
 
@@ -218,7 +257,7 @@ if ( sum(PCA_first_component) < 0 ) {
   } else {
     flipped_sign = 1
     }
-names(PCA_first_component) <- names(market)
+names(PCA_first_component) <- rownames(market)
 pnl_plot(PCA_first_component)
 ```
 
@@ -242,7 +281,7 @@ if ( sum(PCA_second_component) < 0 ) {
   flipped_sign2 = -1
   } else {
     flipped_sign2 = 1}
-names(PCA_second_component) <- names(market)
+names(PCA_second_component) <- rownames(market)
 pnl_plot(PCA_second_component)
 ```
 
@@ -312,14 +351,14 @@ One can now also explore mean reversion or momentum of the residuals. There are 
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
 mr_Stock_Residuals = -sign(shift(Stock_Residuals, 1)) * Stock_Residuals
-rownames(mr_Stock_Residuals) <- names(market)
+rownames(mr_Stock_Residuals) <- rownames(market)
 best_stock_mr_res = which.max(apply(mr_Stock_Residuals, 2, sum))
 pnl_plot(mr_Stock_Residuals[, best_stock_mr_res])
 ```
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
 mom_Stock_Residuals = sign(shift(Stock_Residuals, 1)) * Stock_Residuals
-rownames(mom_Stock_Residuals) <- names(market)
+rownames(mom_Stock_Residuals) <- rownames(market)
 best_stock_mom_res = which.max(apply(mom_Stock_Residuals, 2, sum))
 pnl_plot(mom_Stock_Residuals[, best_stock_mom_res])
 ```
@@ -332,14 +371,14 @@ One can also explore the portfolio of individual residual strategies when select
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
 selected_strat_res = apply(mr_Stock_Residuals, 2, function(r) if ( sum(r) < 0 ) -r else r )
 selected_mr_market_res = apply(selected_strat_res, 1, mean)
-names(selected_mr_market_res) <- names(market)
+names(selected_mr_market_res) <- rownames(market)
 pnl_plot(selected_mr_market_res)
 ```
 
 But again, choosing between momentum and mean reversion for each redisual portfolio without hindsight is not practical. 
 
 <blockquote> <p>
-The results "with hindsight" may give the impression that, even though one cannot reach those results in practice, there is a lot of potential. Afterall one only has to select 423 binary variables for the entire 10 years of data: whether to follow a mean reversion or a momentum strategy for each individual stock or residual portfolio for the entire 10 years period. At first glance, making only a "423 bits" decision (you can think of it as if you "only see 423 bits of information for the entire 10 years for all `r ncol(ProjectData)` stocks, namely for `r length(ProjectData)` real numbers!") does not seem much at all - especially if this data is "close to random" (note: known risk factors, such as the momentum one, indicate this is not the case - depending on how one models the series). But maybe this is indeed as many bits of information as one could possibly need to "know all about the S&P 500 stocks for 10 years"...
+The results "with hindsight" may give the impression that, even though one cannot reach those results in practice, there is a lot of potential. Afterall one only has to select `r ncol(ProjectData)` binary variables for the entire 10 years of data: whether to follow a mean reversion or a momentum strategy for each individual stock or residual portfolio for the entire 10 years period. At first glance, making only a "`r ncol(ProjectData)` bits" decision (you can think of it as if you "only see `r ncol(ProjectData)` bits of information for the entire 10 years for all `r ncol(ProjectData)` stocks, namely for `r length(ProjectData)` real numbers!") does not seem much at all - especially if this data is "close to random" (note: known risk factors, such as the momentum one, indicate this is not the case - depending on how one models the series). But maybe this is indeed as many bits of information as one could possibly need to "know all about the S&P 500 stocks for 10 years"...
 </p> </blockquote>
 
 

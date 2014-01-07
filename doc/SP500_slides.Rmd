@@ -22,7 +22,7 @@ A simple analysis of daily stock returns of S&P 500 stocks.
 ---
 ## The Data
 
-`r round(nrow(ProjectData) / 250)` years (from `r head(rownames(ProjectData),1)` to `r tail(rownames(ProjectData),1)`) of daily returns of `r ncol(ProjectData)` companies which were in the S&P500 index in February 2013. Every row is a day and every column is an individual stock. The data matrix has `r nrow(ProjectData)` rows and `r ncol(ProjectData)` columns. 
+`r round(nrow(ProjectData) / 250)` years (from `r head(rownames(ProjectData),1)` to `r tail(rownames(ProjectData),1)`) of daily returns of `r ncol(ProjectData)` companies **which were in the S&P500 index in February 2013**. Every row is a day and every column is an individual stock. The data matrix has `r nrow(ProjectData)` rows and `r ncol(ProjectData)` columns. 
 
 ---
 
@@ -33,7 +33,9 @@ hist(ProjectData, main = "Histogram of All Daily Stock Returns", xlab = "Daily S
 ```
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-market = apply(ProjectData, 1, mean)
+market = matrix(apply(ProjectData, 1, mean),ncol=1)
+rownames(market)<-rownames(ProjectData)
+colnames(market)<-"The Market"
 ```
 
 ---
@@ -42,11 +44,39 @@ market = apply(ProjectData, 1, mean)
 
 All returns reported correspond to the total sum of returns if we invest every day 1 dollar. For example, in this case the market returns is `r sum(market)`, which means that we would have made a total of `r sum(market)`% of 1 dollar, namely `r sum(market) * 1 / 100` dollars. If the return was, say, -200%, we would have lost 2 dollars.  
 
+**Note**: No transaction costs are included. Moreover, given these are the stocks that "survived" in the S&P index until 2013, the returns are not the same as the actual returns of the S&P index.
+
+---
+
+
+## Cumulative Returns of the Equally-Weighted Market
+
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+pnl_plot(market)
+```
+
+---
+
+## Cumulative Returns of the Equally-Weighted Market 
+
+*Interactive chart:* Put the mouse on the plot to see daily values
+
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+thedates=sapply(rownames(ProjectData),function(x) as.Date(x))
+data.frame.market<-data.frame(TheDate=thedates,ReturnsSoFar=cumsum(market), row_names=rownames(ProjectData))
+int_market <- nvd3Plot(ReturnsSoFar ~ TheDate, data = data.frame.market, id = 'chart', type = 'lineChart')
+int_market$print(include_assets = TRUE, cdn = TRUE)
+```
+
 ---
 
 ## Cumulative Returns of the Equally-Weighted Market
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+data.frame.market<-data.frame(date=rownames(market)[1:4],rets=market[1:4,], row_names=rownames(market)[1:4] )
+ecm <- reshape2::melt(data.frame.market[,c('date', 'rets')], id = 'date')
+p5 <- nvd3Plot(value ~ date | variable, data = ecm, type = 'lineChart')
+
 pnl_plot(market)
 ```
 
@@ -63,6 +93,14 @@ print(xtable(market_summary, caption = "Summary Statistics Daily Market Returns"
 ```
 </div>
 </div>
+
+---
+
+## Monthly and Yearly Returns of the Equal Weighted Market
+
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+cat(renderHeatmapX(pnl_matrix((market/100)), border=1))
+```
 
 ---
 
@@ -99,12 +137,21 @@ pnl_plot(ProjectData[, worst_stock])
 ## Mean Reversion of the Market
 
 ```{r results='asis'}
-mr_strategy = -sign(shift(market, 1)) * market
+mr_strategy = matrix( -sign(shift(market, 1)) * market,ncol=1)
 ```
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-names(mr_strategy) <- names(market)
+rownames(mr_strategy) <- rownames(market)
+colnames(mr_strategy) <- "Mean Reversion"
 pnl_plot(mr_strategy)
+```
+
+---
+
+## Monthly and Yearly Returns of the the Mean Reversion Strategy
+
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+cat(renderHeatmapX(pnl_matrix((mr_strategy/100)), border=1))
 ```
 
 ---
@@ -112,9 +159,18 @@ pnl_plot(mr_strategy)
 ## Mean Reversion of the Market: only when the market fell the day before
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-mr_down = mr_strategy * ( shift(market, 1) < 0 )
-names(mr_down) <- names(market)
+mr_down = matrix(mr_strategy * ( shift(market, 1) < 0 ),ncol=1)
+rownames(mr_down) <- rownames(market)
+colnames(mr_down) <- "Mean Reversion Up"
 pnl_plot(mr_down)
+```
+
+---
+
+## Monthly and Yearly Returns of the the Mean Reversion Strategy after Up Days only
+
+```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
+cat(renderHeatmapX(pnl_matrix((mr_down/100)), border=1))
 ```
 
 ---
@@ -123,7 +179,7 @@ pnl_plot(mr_down)
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
 mr_up = mr_strategy * ( shift(market, 1) >= 0 )
-names(mr_up) <- names(market)
+names(mr_up) <- rownames(market)
 pnl_plot(mr_up)
 ```
 
@@ -162,7 +218,7 @@ pnl_plot(mr_ProjectData[, worst_stock_mr])
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
 mr_market = apply(mr_ProjectData, 1, mean)
-names(mr_market) <- names(market)
+names(mr_market) <- rownames(market)
 pnl_plot(mr_market)
 ```
 
@@ -190,7 +246,7 @@ selected_mr_market = apply(selected_strat, 1, mean)
 ## Average of Selecting between Mean Reversion and Momentum for each Stock
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-names(selected_mr_market) <- names(market)
+names(selected_mr_market) <- rownames(market)
 pnl_plot(selected_mr_market)
 ```
 
@@ -256,7 +312,7 @@ if ( sum(PCA_first_component) < 0 ) {
   } else {
     flipped_sign = 1
     }
-names(PCA_first_component) <- names(market)
+names(PCA_first_component) <- rownames(market)
 ```
 
 Correlation with the market: `r cor(market, PCA_first_component)`
@@ -286,7 +342,7 @@ if ( sum(PCA_second_component) < 0 ) {
   flipped_sign2 = -1
   } else {
     flipped_sign2 = 1}
-names(PCA_second_component) <- names(market)
+names(PCA_second_component) <- rownames(market)
 ```
 
 Correlation with the market: `r cor(market, PCA_second_component)`
@@ -396,7 +452,7 @@ pnl_plot(Stock_Residuals[, best_stock_res, drop = F])
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
 mr_Stock_Residuals = -sign(shift(Stock_Residuals, 1)) * Stock_Residuals
-rownames(mr_Stock_Residuals) <- names(market)
+rownames(mr_Stock_Residuals) <- rownames(market)
 best_stock_mr_res = which.max(apply(mr_Stock_Residuals, 2, sum))
 ```
 
@@ -430,7 +486,7 @@ selected_mr_market_res = apply(selected_strat_res, 1, mean)
 ## Average of Selection with Hindsight
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
-names(selected_mr_market_res) <- names(market)
+names(selected_mr_market_res) <- rownames(market)
 pnl_plot(selected_mr_market_res)
 ```
 
@@ -438,7 +494,7 @@ pnl_plot(selected_mr_market_res)
 
 ## How Many Bits of Information are there in the S&P500 Data?
 
-The results "with hindsight" may give the impression that, even though one cannot reach those results in practice, there is a lot of potential. Afterall one only has to select 423 binary variables for the entire 10 years of data: whether to follow a mean reversion or a momentum strategy for each individual stock or residual portfolio for the entire 10 years period. At first glance, making only a "423 bits" decision (you can think of it as if you "only see 423 bits of information for the entire 10 years for all `r ncol(ProjectData)` stocks, namely for `r length(ProjectData)` real numbers!") does not seem much at all - especially if this data is "close to random" (note: known risk factors, such as the momentum one, indicate this is not the case - depending on how one models the series). But maybe this is indeed as many bits of information as one could possibly need to "know all about the S&P 500 stocks for 10 years"...
+The results "with hindsight" may give the impression that, even though one cannot reach those results in practice, there is a lot of potential. Afterall one only has to select `r ncol(ProjectData)` binary variables for the entire 10 years of data: whether to follow a mean reversion or a momentum strategy for each individual stock or residual portfolio for the entire 10 years period. At first glance, making only a "`r ncol(ProjectData)` bits" decision (you can think of it as if you "only see `r ncol(ProjectData)` bits of information for the entire 10 years for all `r ncol(ProjectData)` stocks, namely for `r length(ProjectData)` real numbers!") does not seem much at all - especially if this data is "close to random" (note: known risk factors, such as the momentum one, indicate this is not the case - depending on how one models the series). But maybe this is indeed as many bits of information as one could possibly need to "know all about the S&P 500 stocks for 10 years"...
 
 
 **As always, one has to be very aware of the signal to noise ratio in the data one explores. This is what "fooled by randomness" can really mean.**
@@ -455,7 +511,7 @@ Here is the code for seeing the returns of such a portfolio. Try it by uncomment
 ```{r results='asis'}
 hindsight_long_short = apply(ProjectData, 2, function(r) if ( sum(r) < 0 ) -r else r)
 hindsight_long_short_market = apply(hindsight_long_short, 1, mean)
-names(hindsight_long_short_market) <- names(market)
+names(hindsight_long_short_market) <- rownames(market)
 #pnl_plot(hindsight_long_short_market)
 ```
 
