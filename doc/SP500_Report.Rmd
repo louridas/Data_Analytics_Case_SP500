@@ -23,6 +23,8 @@ It describes a simple analysis of daily stock returns of S&P 500 stocks.
 
 ```
 This project is meant to be an example of how to organize a data analytics case study/project. It is not meant to provide insights for stock data or stock trading. It also does not build on any finance literature (e.g. regarding risk factors such as size, growth, or momentum). 
+
+The returns generated may also be different from the returns of, say, the S&P 500 index, as the universe of stocks/data used may be biased (e.g. survivorship bias). 
 ```
 
 

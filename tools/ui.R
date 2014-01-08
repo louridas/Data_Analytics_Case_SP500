@@ -15,10 +15,24 @@ shinyUI(pageWithSidebar(
     # STEP 2.1: read the data
     
     HTML("<center><h3>Data Upload </h3>
-         <strong> Note: File must contain data matrix named ProjectData</strong>
+         <strong> Note: at any point the app crashes please reload the web page</strong>
          </center>"),
-    fileInput('datafile_name', 'Choose File (R data)'),
-    #tags$hr(),
+    HTML("<hr>"),
+    HTML("<center><h3>Data Upload </h3>
+         </center>"),
+    HTML("<hr>"),
+    HTML("<strong> Note: You must always go to the Parameters Tab (on the right pane) before you load any new data </strong>"),    
+    HTML("<hr>"),
+    HTML("Choose a pre-loaded file (Recommended for Testing the App):"),    
+    selectInput('datafile_name_coded', '',
+                c("Financial Sector Stocks", "Tech Sector Stocks", "All Stocks  (slow...)"),multiple = FALSE),
+    HTML("<hr>"),
+    HTML("Or choose any data file (R data in the format of the case) to Upload (requires fast internet connection). 
+         <strong> Your file must contain a numeric (stock returns) matrix named ProjectData. Once you load a file you cannot use 
+         the pre-loaded data menu above and you will need to re-load the web page to restart the app.</strong>"),    
+    HTML("<br>"),    
+    fileInput('datafile_name', ''),
+    HTML("<hr>"),
     HTML("<hr>"),
     HTML("<center><strong> Note:Please go to the Parameters Tab when you change the parameters below </strong>
          </center>"),    
@@ -67,9 +81,11 @@ shinyUI(pageWithSidebar(
       
       tabPanel("Parameters", 
                div(class="row-fluid",
-                   div(class="span12",h4("Summary of Key Parameters")),
+                   div(class="span12",h5("Note: The returns generated may be different from the returns of, say, the S&P 500 index, as the universe of stocks/data used may be biased (e.g. survivorship bias). 
+                                         All returns reported correspond to returns if 1 dollar is invested every day from-close-to-close. No transaction costs included.")),
                    tags$hr(),
-                   div(class="span12",h5("NOTE: All returns reported correspond to returns if 1 dollar is invested every day from-close-to-close. No transaction costs included.")),
+                   tags$hr(),
+                   div(class="span12",h4("Summary of Key Parameters")),
                    tags$hr(),
                    tableOutput('parameters')
                )

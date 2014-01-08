@@ -68,5 +68,15 @@ file.copy( 'SP500_Report.html', "../doc/SP500_Report.html", overwrite = T )
 setwd( "../" )
 unlink( "TMPdirReport", recursive = TRUE )      
 
-if (start_webapp)
+if (start_webapp){
+  # load all files in the data directory to have them available locally
+  load("data/FinancialsData")
+  FinancialsData <- ProjectData
+  load("data/TechData")
+  TechData <- ProjectData
+  load("data/DefaultData")
+  MarketData <- ProjectData
+  
   runApp("tools")
+}
+  

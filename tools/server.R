@@ -18,10 +18,22 @@ shinyServer(function(input, output,session) {
   # NOT from new_values$ !
   output$parameters<-renderTable({
     
-    inFile <- input$datafile_name
-    if (is.null(inFile))
-      return(NULL)    
-    load(inFile$datapath)
+    file_selected <- reactive({
+      input$datafile_name_coded
+    }) 
+    if (file_selected() == "Financial Sector Stocks")
+      ProjectData <- FinancialsData
+    if (file_selected() == "Tech Sector Stocks")
+      ProjectData <- TechData
+    if (file_selected() == "All Stocks (slow...)")
+      ProjectData <- MarketData
+
+    inFile <- reactive({
+      input$datafile_name
+    }) 
+    if (!is.null(inFile()))    
+      load(inFile()$datapath)
+    
     new_values$start_date<-reactive({
       input$start_date
     }) 
