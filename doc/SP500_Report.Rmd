@@ -72,7 +72,7 @@ print(xtable(market_summary, caption = "Summary Statistics Daily Market Returns"
 </div>
 </div>
 
-And this is an *Interactive chart:* (if you put the mouse on the plot you can see daily values. You can also zoom in the graph using the smaller graph below)
+And this is an *Interactive chart:* (Put the mouse on the plot to see daily values, and zoom with click-and-drag with the mouse in the smaller graph below)
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
 thedates=sapply(rownames(ProjectData),function(x) as.Date(x))

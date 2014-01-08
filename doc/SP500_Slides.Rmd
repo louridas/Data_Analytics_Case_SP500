@@ -59,7 +59,7 @@ pnl_plot(market)
 
 ## Cumulative Returns of the Equally-Weighted Market 
 
-*Interactive chart:* Put the mouse on the plot to see daily values, and zoom using the smaller graph below. 
+*Interactive chart:* Put the mouse on the plot to see daily values, and zoom with click-and-drag with the mouse in the smaller graph below. 
 
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
