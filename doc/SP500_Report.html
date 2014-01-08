@@ -5301,7 +5301,7 @@ All returns reported correspond to the total sum of returns if we invest every d
 
 <p></div></p>
 
-<p>And this is an <em>Interactive chart:</em> (if you put the mouse on the plot you can see daily values)</p>
+<p>And this is an <em>Interactive chart:</em> (Put the mouse on the plot to see daily values, and zoom using click-and-drag with the mouse in the smaller graph below)</p>
 
 <p><link rel='stylesheet' href=http://nvd3.org/src/nv.d3.css></p>
 
@@ -5323,20 +5323,20 @@ All returns reported correspond to the total sum of returns if we invest every d
   }<br/>
   </style></p>
 
-<div id = 'chart56d283d08356f' class = 'rChart nvd3'></div>
+<div id = 'chart56d28ea6523e' class = 'rChart nvd3'></div>
 
 <script type='text/javascript'>
  $(document).ready(function(){
-      drawchart56d283d08356f()
+      drawchart56d28ea6523e()
     });
-    function drawchart56d283d08356f(){  
+    function drawchart56d28ea6523e(){  
       var opts = {
- "dom": "chart56d283d08356f",
+ "dom": "chart56d28ea6523e",
 "width":    800,
 "height":    400,
 "x": "TheDate",
 "y": "ReturnsSoFar",
-"id": "chart56d283d08356f",
+"id": "chart56d28ea6523e",
 "type": "lineWithFocusChart" 
 },
         data = [
@@ -18297,9 +18297,13 @@ All returns reported correspond to the total sum of returns if we invest every d
          
         
           
-        
+        chart.xAxis
+  .showMaxMin(false)
+  .tickFormat(function ( d ) {return d3.time.format('%b %Y')(new Date( d*86400000 ));})
 
-        
+        chart.x2Axis
+  .showMaxMin(false)
+  .tickFormat(function ( d ) {return d3.time.format('%b %Y')(new Date( d*86400000 ));})
         
         
       

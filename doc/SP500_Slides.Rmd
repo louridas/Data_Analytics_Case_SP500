@@ -59,13 +59,17 @@ pnl_plot(market)
 
 ## Cumulative Returns of the Equally-Weighted Market 
 
-*Interactive chart:* Put the mouse on the plot to see daily values, and zoom with click-and-drag with the mouse in the smaller graph below. 
+*Interactive chart:* Put the mouse on the plot to see daily values, and zoom using click-and-drag with the mouse in the smaller graph below. 
 
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
 thedates=sapply(rownames(ProjectData),function(x) as.Date(x))
 data.frame.market<-data.frame(TheDate=thedates,ReturnsSoFar=cumsum(market), row_names=rownames(ProjectData))
-int_market <- nvd3Plot(ReturnsSoFar ~ TheDate, data = data.frame.market, id = 'chart', type = 'lineChart', height=200)
+int_market <- nvd3Plot(ReturnsSoFar ~ TheDate, data = data.frame.market, id = 'chart', type = 'lineWithFocusChart')
+int_market$xAxis(
+  showMaxMin=FALSE,
+  tickFormat="#!function ( d ) {return d3.time.format('%b %Y')(new Date( d*86400000 ));}!#"
+  )
 int_market$print(include_assets = TRUE, cdn = TRUE)
 ```
 
