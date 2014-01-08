@@ -5323,20 +5323,20 @@ All returns reported correspond to the total sum of returns if we invest every d
   }<br/>
   </style></p>
 
-<div id = 'chart56d28ea6523e' class = 'rChart nvd3'></div>
+<div id = 'chart56d28328a5a0' class = 'rChart nvd3'></div>
 
 <script type='text/javascript'>
  $(document).ready(function(){
-      drawchart56d28ea6523e()
+      drawchart56d28328a5a0()
     });
-    function drawchart56d28ea6523e(){  
+    function drawchart56d28328a5a0(){  
       var opts = {
- "dom": "chart56d28ea6523e",
+ "dom": "chart56d28328a5a0",
 "width":    800,
 "height":    400,
 "x": "TheDate",
 "y": "ReturnsSoFar",
-"id": "chart56d28ea6523e",
+"id": "chart56d28328a5a0",
 "type": "lineWithFocusChart" 
 },
         data = [
@@ -18305,7 +18305,8 @@ All returns reported correspond to the total sum of returns if we invest every d
   .showMaxMin(false)
   .tickFormat(function ( d ) {return d3.time.format('%b %Y')(new Date( d*86400000 ));})
         
-        
+        chart.yAxis
+  .showMaxMin(false)
       
        d3.select("#" + opts.id)
         .append('svg')

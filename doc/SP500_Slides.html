@@ -135,20 +135,20 @@
   }<br>
   </style></p>
 
-<div id = 'chart56d281ba411f' class = 'rChart nvd3'></div>
+<div id = 'chart56d28c7988' class = 'rChart nvd3'></div>
 
 <script type='text/javascript'>
  $(document).ready(function(){
-      drawchart56d281ba411f()
+      drawchart56d28c7988()
     });
-    function drawchart56d281ba411f(){  
+    function drawchart56d28c7988(){  
       var opts = {
- "dom": "chart56d281ba411f",
+ "dom": "chart56d28c7988",
 "width":    800,
 "height":    400,
 "x": "TheDate",
 "y": "ReturnsSoFar",
-"id": "chart56d281ba411f",
+"id": "chart56d28c7988",
 "type": "lineWithFocusChart" 
 },
         data = [
@@ -13117,7 +13117,8 @@
   .showMaxMin(false)
   .tickFormat(function ( d ) {return d3.time.format('%b %Y')(new Date( d*86400000 ));})
         
-        
+        chart.yAxis
+  .showMaxMin(false)
       
        d3.select("#" + opts.id)
         .append('svg')
