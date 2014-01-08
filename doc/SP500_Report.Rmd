@@ -78,6 +78,7 @@ And this is an *Interactive chart:* (Put the mouse on the plot to see daily valu
 thedates=sapply(rownames(ProjectData),function(x) as.Date(x))
 data.frame.market<-data.frame(TheDate=thedates,ReturnsSoFar=cumsum(market), row_names=rownames(ProjectData))
 int_market <- nvd3Plot(ReturnsSoFar ~ TheDate, data = data.frame.market, id = 'chart', type = 'lineWithFocusChart')
+int_market$yAxis(showMaxMin=FALSE)
 int_market$xAxis(
   showMaxMin=FALSE,
   tickFormat="#!function ( d ) {return d3.time.format('%b %Y')(new Date( d*86400000 ));}!#"
