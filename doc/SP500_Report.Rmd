@@ -72,17 +72,17 @@ print(xtable(market_summary, caption = "Summary Statistics Daily Market Returns"
 </div>
 </div>
 
-And this is an *Interactive chart:* (if you put the mouse on the plot you can see daily values)
+And this is an *Interactive chart:* (if you put the mouse on the plot you can see daily values. You can also zoom in the graph using the smaller graph below)
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
 thedates=sapply(rownames(ProjectData),function(x) as.Date(x))
 data.frame.market<-data.frame(TheDate=thedates,ReturnsSoFar=cumsum(market), row_names=rownames(ProjectData))
-int_market <- nvd3Plot(ReturnsSoFar ~ TheDate, data = data.frame.market, id = 'chart', type = 'lineChart')
+int_market <- nvd3Plot(ReturnsSoFar ~ TheDate, data = data.frame.market, id = 'chart', type = 'lineWithFocusChart')
 int_market$print(include_assets = TRUE, cdn = TRUE)
 ```
 
-
-If we select With hindsight the best individual stock in terms of returns, it performs as follows:
+<br><br>
+If we select with hindsight the best individual stock in terms of returns, it performs as follows:
 
 ```{r echo=FALSE, comment=NA, warning=FALSE, message=FALSE,results='asis'}
 best_stock = which.max(apply(ProjectData, 2, sum))
