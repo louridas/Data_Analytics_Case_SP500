@@ -113,7 +113,7 @@
     <h2>Cumulative Returns of the Equally-Weighted Market</h2>
   </hgroup>
   <article data-timings="">
-    <p><em>Interactive chart:</em> Put the mouse on the plot to see daily values, and zoom using the smaller graph below. </p>
+    <p><em>Interactive chart:</em> Put the mouse on the plot to see daily values, and zoom using click-and-drag with the mouse in the smaller graph below. </p>
 
 <p><link rel='stylesheet' href=http://nvd3.org/src/nv.d3.css></p>
 
@@ -131,25 +131,25 @@
     margin-left: auto; 
     margin-right: auto;
     width: 800px;
-    height: 200px;
+    height: 400px;
   }<br>
   </style></p>
 
-<div id = 'chart56d28af743ee' class = 'rChart nvd3'></div>
+<div id = 'chart56d281ba411f' class = 'rChart nvd3'></div>
 
 <script type='text/javascript'>
  $(document).ready(function(){
-      drawchart56d28af743ee()
+      drawchart56d281ba411f()
     });
-    function drawchart56d28af743ee(){  
+    function drawchart56d281ba411f(){  
       var opts = {
- "dom": "chart56d28af743ee",
+ "dom": "chart56d281ba411f",
 "width":    800,
-"height":    200,
+"height":    400,
 "x": "TheDate",
 "y": "ReturnsSoFar",
-"id": "chart56d28af743ee",
-"type": "lineChart" 
+"id": "chart56d281ba411f",
+"type": "lineWithFocusChart" 
 },
         data = [
  {
@@ -13109,9 +13109,13 @@
          
         
           
-        
+        chart.xAxis
+  .showMaxMin(false)
+  .tickFormat(function ( d ) {return d3.time.format('%b %Y')(new Date( d*86400000 ));})
 
-        
+        chart.x2Axis
+  .showMaxMin(false)
+  .tickFormat(function ( d ) {return d3.time.format('%b %Y')(new Date( d*86400000 ));})
         
         
       
